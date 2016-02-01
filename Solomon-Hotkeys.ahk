@@ -75,14 +75,7 @@ Snippet(){
 	;(代码糖，用来在Ctrl+R快速跳转)
 } 
 ; -- 个人信息Snippet快捷键 (Chrome Only) -->
-::3601::36012419880806183X
-::158::15811044829
-::130::13041162562
-::@qq::xie_xiaobo@qq.com
 ::@fox::solomonxie@foxmail.com
-::@leo::leonard_elric@163.com
-::@out::solomonxie@outlook.com
-::@gmail::solomonxiewise@gmail.com
 
 MultiTask(){
 	; --- 获取指令及关键词 ---
