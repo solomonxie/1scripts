@@ -110,8 +110,10 @@ MultiTask(){
 	else if (eg = "Pac" and key != "") {
 		if (key = "Off")
 			Run % Sites("setProxy") " -o Off "
-		else
+		else if (key = "On")
 			Run % Sites("setProxy") " -o PacOnly --pac ""http://xduotai.com/pRsO3NGR3-.pac"""
+		else
+			Run % Sites("setProxy") " -o PacOnly --pac """ key """"
 	}
 	else if (eg = "Mirror") {
 		Run % Sites("Mirror") " -p " key ;用的时候路径必须带引号！
@@ -122,14 +124,14 @@ MultiTask(){
 			Run % resu[A_Index]
 	}
 	else if (eg="YoutubeDown") {
-		Run % Sites("YoutubeDown") " --video """ key """"
+		Run % Sites("YoutubeDown") " --video """ key """  --folder """ A_Temp """"
 	}
 	else if (eg="YoutubeDownList") {
 		filePath := A_Temp "\youtube-playlist.html"
 		file := FileOpen(filePath, "w")
 		file.Write(Clipboard)
 		file.Close()
-		Run % Sites("YoutubeDown") " --list """ filePath """"
+		Run % Sites("YoutubeDown") " --list """ filePath """  --folder """ A_Temp """"
 	}
 	else {
 		Run % Sites(eg, key)
@@ -195,8 +197,8 @@ Sites(eg="", key="", gp="") {
 	engines.insert(["sys:event", "GPedit.msc"]) ;事件查看器
 	engines.insert(["This", "C:\Program Files\Sublime Text 3\sublime_text.exe """ A_ScriptFullPath """ "]) ;编辑本脚本
 	engines.insert(["Gate", "D:\Solomon Xie\GateToSolomonXieMC@2.zip"])
-	engines.insert(["setProxy", "D:\Solomon Xie\Workspace\Gists\Python\setRegProxy.py"]) ;Python设置代理脚本，接收命令行参数
-	engines.insert(["Mirror", "D:\Solomon Xie\Workspace\Gists\Python\miniDiskMirror.py"]) ;Python设置任意文件夹镜像
+	engines.insert(["setProxy", "D:\Solomon Xie\Workspace\Gists\setRegProxy.py"]) ;Python设置代理脚本，接收命令行参数
+	engines.insert(["Mirror", "D:\Solomon Xie\Workspace\Gists\miniDiskMirror.py"]) ;Python设置任意文件夹镜像
 	engines.insert(["YoutubeDown", "D:\Solomon Xie\Workspace\Gists\youtubeDownload.py"]) ;Python下载Youtube视频
 	engines.insert(["sys:install", "rundll32.exe shell32.dll,Control_RunDLL appwiz.cpl,,1"]) ;安装/卸载软件
 	; --常用软件--
@@ -272,6 +274,7 @@ Sites(eg="", key="", gp="") {
 	; --在线视频--
 	engines.insert(["tudou", "http://www.soku.com/t/nisearch/" key, "Video"]) ;土豆网/优酷网
 	engines.insert(["youtube", "https://www.youtube.com/results?search_query=" key, "Video"]) ; Youtube
+	engines.insert(["YoutubeList", "https://www.youtube.com/results?sp=EgIQAw%253D%253D&q=" key, "Video"]) ; Youtube
 	engines.insert(["letv", "http://so.letv.com/s?wd=" key, "Video"]) ;乐视网
 	engines.insert(["iqi", "http://so.iqiyi.com/so/q_" key, "Video"]) ;爱奇艺
 	engines.insert(["Vimeo", "https://vimeo.com/search?q=" key, "Video"]) ;

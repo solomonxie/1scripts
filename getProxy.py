@@ -9,7 +9,7 @@
 # === 必备模块 ===
 import urllib2, urllib, re, os, sys, time, random, datetime, getopt
 import requests # 第三方
-from multiprocessing import Pool
+from threading import Thread
 from bs4 import BeautifulSoup # 第三方
     
 def main():
@@ -21,6 +21,7 @@ def main():
         elif o == '-a':    print Proxy().ieProxy('PacOnly')
         elif o == '--pac': print Proxy(pac=a).ieProxy('ProxyOnly')
         elif o == '--off': print Proxy().ieProxy('Off')
+    ProxyPool().update()
     # for i in ProxyPool().getProxies():
     #     print Proxy(i).check()
 
@@ -110,13 +111,46 @@ class Proxy():
 
 class ProxyPool():
     def __init__(self):
-        pass
+        self.lines = [] # 网上获取代理地址
+        self.uris  = [] # 验证通过的代理地址
+        self.online = True # 是否在线获取，否的话则为本地网页文件获取
 
     def getProxies(self):
         with open('proxyJungle.txt', 'r') as f:
             return [line for line in f.readlines() if Proxy(line).uri]
 
-    def update(self, online=True):
+    def extractIP(self, site):
+        # 选择是在线获取还是根据本地HTML文件获取
+        if self.online:
+            r = requests.get(site['url'], headers=getHeader(), timeout=3)
+            content = r.text
+        else:
+            with open(site['loc'], 'r') as f: content = f.read()
+        # 开始从HTML源码中进行内容抽取
+        ptn = site.get('re') if site.get('re') else site.get('ptn')
+        if site.get('re'): #一般获取方式
+            resu = re.findall(ptn[0], content)
+            if len(resu) < 1: return
+            for m in resu:
+                pto = 'https://' if 'https' in m[ptn[3]].lower() else 'http://'
+                self.lines.append( pto + m[ptn[1]] +':'+ m[ptn[2]] )
+        else: #特殊获取方式
+            soup = BeautifulSoup(content, 'html5lib')
+            if ptn[0] == 'goubanjia' or ptn[0] == 'qiaodm':
+                rows = soup.select(ptn[1])
+                for ro in rows:
+                    port = ''.join([ ':'+t.get_text() for t in ro.select(ptn[2]) ])
+                    pto = ''.join([ t.get_text() for t in ro.select(ptn[3]) ])
+                    pto = 'https://' if 'https' in pto else 'http://'
+                    chaos = re.findall( ptn[5], str(ro.select(ptn[4])) )
+                    prx = ''.join( [c[2] for c in chaos if c])
+                    mix = pto + prx + port
+                    if mix: self.lines.append(mix)
+    def checkIPs(self, prx):
+        if Proxy(prx).check() > 0:
+            self.uris.append(prx)
+
+    def update(self):
         # 定制所有抓取代理的网址及正则表达式
         sites  = []
         sites.append({'url': 'http://www.kuaidaili.com/free/outha/',
@@ -126,42 +160,16 @@ class ProxyPool():
                       'loc':'proxyHTML/xicidaili.com.html',
                       're': ['<td>(\d+\.\d+\.\d+\.\d+)</td>\s*<td>(\d+)</td>\s*<td>[^<>]*</td>\s*<td>[^<>]*</td>\s*<td>([^<>]*)</td>', 0,1,2]})    
         count = 0
-        lines = []
-        for st in sites:
-            # 选择是在线获取还是根据本地HTML文件获取
-            if online:
-                r = requests.get(st['url'], headers=getHeader(), timeout=3)
-                content = r.text
-            else:
-                with open(st['loc'], 'r') as f: content = f.read()
-            # 开始从HTML源码中进行内容抽取
-            ptn = st.get('re') if st.get('re') else st.get('ptn')
-            if st.get('re'): #一般获取方式
-                resu = re.findall(ptn[0], content)
-                if len(resu) < 1: continue
-                for m in resu:
-                    pto = 'https://' if 'https' in m[ptn[3]].lower() else 'http://'
-                    lines.append( pto + m[ptn[1]] +':'+ m[ptn[2]] )
-            else: #特殊获取方式
-                soup = BeautifulSoup(content, 'html5lib')
-                if ptn[0] == 'goubanjia' or ptn[0] == 'qiaodm':
-                    rows = soup.select(ptn[1])
-                    for ro in rows:
-                        port = ''.join([ ':'+t.get_text() for t in ro.select(ptn[2]) ])
-                        pto = ''.join([ t.get_text() for t in ro.select(ptn[3]) ])
-                        pto = 'https://' if 'https' in pto else 'http://'
-                        chaos = re.findall( ptn[5], str(ro.select(ptn[4])) )
-                        prx = ''.join( [c[2] for c in chaos if c])
-                        mix = pto + prx + port
-                        if mix: lines.append(mix)
-        count = len(lines)
-        print 'Retrived %d proxies, now start to test each of them.'%len(lines)
+        multiThread(func=self.extractIP, prams=sites)
+        count = len(self.lines)
+        print 'Retrived %d proxies, now start to test each of them.'%len(self.lines)
         # 开始检测有效性，只收录可用代理
-        uris = [i for i in lines if Proxy(i).check() > 0]
-        print 'Got %d varified proxies.'%len(uris)
+        # uris = [i for i in self.lines if Proxy(i).check() > 0]
+        multiThread(func=self.checkIPs, prams=self.lines)
+        print 'Got %d varified proxies.'%len(self.uris)
         with open('proxyJungle.txt', 'w') as f:
-            f.write('\n'.join(uris))
-        # print lines
+            f.write('\n'.join(self.uris))
+        # print self.uris
         print '-----Stored %d proxies for this time.'%count
         return count
 
@@ -176,6 +184,16 @@ def getHeader():
     # if not ag.has_key('User-Agent'): ag['User-Agent'] = agents[ random.randint(0,len(agents)-1) ] 
     ag = { 'User-Agent':agents[random.randint(0,len(agents)-1)] }
     return ag
+
+def multiThread(func, prams):
+    threadList = []
+    for p in prams:
+        t = Thread(target=func, args=(p,))
+        t.start()
+        threadList.append(t)
+    print 'Now there are %d threads.'%len(threadList)
+    for sub in threadList:
+        sub.join()
         
 # ---------------------------------------------------------------------------------
 if __name__ == '__main__':
