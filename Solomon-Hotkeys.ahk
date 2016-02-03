@@ -29,8 +29,9 @@ F1::  RunOrAct("ahk_exe chrome.exe", "Chrome")
 F3::  Run % Sites("D")
 F4::  RunOrAct("ahk_class PX_WINDOW_CLASS", "Sublime")
 F6::  RunOrAct("ahk_exe QQPlayer.exe", "QQPlayer")
+F7::  RunOrAct("ahk_class classFoxitReader", "Foxit")
 F9::  Run % Sites("Down") ;RunOrAct("ahk_exe Thunder.exe", Sites("Down"))
-F10:: RunOrAct("ahk_exe BaiduYunGuanjia.exe", "BaiduYun")
+F10:: Run % Sites("BaiduYun")
 !F2:: RunOrAct("ahk_class CabinetWClass", "fo:down")
 #M::  Send !{Space}N ;最小化当前窗口
 ^!W:: Send !{F4} ;关闭当前程序
@@ -75,7 +76,7 @@ Snippet(){
 	;(代码糖，用来在Ctrl+R快速跳转)
 } 
 ; -- 个人信息Snippet快捷键 (Chrome Only) -->
-::@fox::solomonxie@foxmail.com
+::@sol::solomonxie@foxmail.com
 
 MultiTask(){
 	; --- 获取指令及关键词 ---
@@ -120,6 +121,16 @@ MultiTask(){
 		loop % resu.MaxIndex() 
 			Run % resu[A_Index]
 	}
+	else if (eg="YoutubeDown") {
+		Run % Sites("YoutubeDown") " --video """ key """"
+	}
+	else if (eg="YoutubeDownList") {
+		filePath := A_Temp "\youtube-playlist.html"
+		file := FileOpen(filePath, "w")
+		file.Write(Clipboard)
+		file.Close()
+		Run % Sites("YoutubeDown") " --list """ filePath """"
+	}
 	else {
 		Run % Sites(eg, key)
 	}
@@ -129,7 +140,13 @@ MultiTask(){
 
 ^!F12:: ;试验专用键 Ctrl+Alt+F12
 {
-	msgbox % "hello """ A_ScriptFullPath """ hi"
+	; msgbox % "hello """ A_ScriptFullPath """ hi"
+	filePath := A_Temp "\youtube-playlist.html"
+	file := FileOpen(filePath, "w")
+	file.Write(Clipboard)
+	file.Close()
+	Run % filePath
+
 	Return
 }
 
@@ -177,18 +194,20 @@ Sites(eg="", key="", gp="") {
 	engines.insert(["sys:Services", "Services.msc"]) ;服务
 	engines.insert(["sys:event", "GPedit.msc"]) ;事件查看器
 	engines.insert(["This", "C:\Program Files\Sublime Text 3\sublime_text.exe """ A_ScriptFullPath """ "]) ;编辑本脚本
-	engines.insert(["onepass", "D:\Solomon Xie\GateToSolomonXieMC@2.docx"])
+	engines.insert(["Gate", "D:\Solomon Xie\GateToSolomonXieMC@2.zip"])
 	engines.insert(["setProxy", "D:\Solomon Xie\Workspace\Gists\Python\setRegProxy.py"]) ;Python设置代理脚本，接收命令行参数
 	engines.insert(["Mirror", "D:\Solomon Xie\Workspace\Gists\Python\miniDiskMirror.py"]) ;Python设置任意文件夹镜像
+	engines.insert(["YoutubeDown", "D:\Solomon Xie\Workspace\Gists\youtubeDownload.py"]) ;Python下载Youtube视频
 	engines.insert(["sys:install", "rundll32.exe shell32.dll,Control_RunDLL appwiz.cpl,,1"]) ;安装/卸载软件
 	; --常用软件--
 	engines.insert(["Vim", "Vim"]) ;VIM
+	engines.insert(["MD", "https://stackedit.io/editor"]) ;Markdown编辑器
 	engines.insert(["cmd", "D:\TDownload\Softwares\Developer\cmder\Cmder.exe " key]) ;cmd的增强版工具
 	engines.insert(["Down", "C:\Program Files\Thunder Network\Thunder\Program\Thunder.exe " key]) ;迅雷下载
 	engines.insert(["Rec", "C:\Program Files\Blueberry Software\BB FlashBack Pro 5\FlashBack Recorder.exe"]) ;屏幕录像
 	engines.insert(["QQ", "C:\Program Files\Tencent\QQ\Bin\QQScLauncher.exe"])
 	engines.insert(["QQPlayer", "C:\Program Files\Tencent\QQPlayer\QQPlayer.exe"])
-	engines.insert(["yun", "C:\Users\Administrator\AppData\Roaming\Baidu\BaiduYunGuanjia\BaiduYunGuanjia.exe"])
+	engines.insert(["BaiduYun", "C:\Users\Administrator\AppData\Roaming\Baidu\BaiduYunGuanjia\BaiduYunGuanjia.exe"])
 	engines.insert(["Wechat", "C:\Program Files\Tencent\WeChat\WeChat.exe"])
 	engines.insert(["Word", "WinWord"])
 	engines.insert(["Excel", "Excel"])
@@ -198,6 +217,7 @@ Sites(eg="", key="", gp="") {
 	engines.insert(["Draw", "C:\Windows\system32\mspaint.exe"]) ;画图
 	engines.insert(["IE", "C:\Program Files\Internet Explorer\iexplore.exe " key])
 	engines.insert(["Chrome", "C:\Program Files\Google\Chrome\Application\chrome.exe " key])
+	engines.insert(["ChromeApp", "C:\Program Files\Google\Chrome\Application\chrome.exe --show-app-list"])
 	engines.insert(["ff", "C:\Program Files\Mozilla Firefox\firefox.exe " key])
 	engines.insert(["3L", "C:\Users\Administrator\AppData\Local\360Chrome\Chrome\Application\360chrome.exe " key]) ;360极速浏览器
 	engines.insert(["Calc", "C:\Windows\system32\calc.exe"]) ;计算器
@@ -284,6 +304,7 @@ Sites(eg="", key="", gp="") {
 	engines.insert(["Lynda", "http://www.lynda.com/search?q=" key, "enCourse"])
 	engines.insert(["Courses.com", "http://www.courses.com/s?q=" key, "enCourse"])
 	engines.insert(["Alison", "https://alison.com/search/result/?q=" key, "enCourse"])
+	engines.insert(["youtube", "https://www.youtube.com/results?search_query=" key, "enCourse"]) ; Youtube
 	; --代理服务器--
 	engines.insert(["myip", "http://ip.cn/"]) ;查询本机的公网IP
 	engines.insert(["duotai", "https://duotai.org/login"]) ;多态网ZPN（全平台提供PAC自动配置代理的脚本）
@@ -340,6 +361,7 @@ Chrome(){
 {
 	^B::Send +^O ;-- 书签管理器 --
 	^E::Send !es ;-- 浏览器设置 --
+	^Y:: Run % Sites("SaveFrom", Clipboard)
 	; F2::Send !d ;-- 编辑网址URL --
 	Insert::Send {AppsKey}P ;-- 打印选中文字 --
 	F1::
