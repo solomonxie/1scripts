@@ -21,19 +21,15 @@ Pause::Suspend ;暂停/开启脚本
 !Pause::Reload  ;重新加载本AHK脚本文件
 PrintScreen::Send ^+{Esc} ;任务管理器
 Insert::Return
-!Insert::Insert
+!Insert::Insert ;Alt+Insert 代表原Insert键
 ScrollLock::MultiTask()
 !ScrollLock::ScrollLock
 ; --- 快捷启动 ---
 F1::  RunOrAct("ahk_exe chrome.exe", "Chrome")
-F3::  Run % Sites("D")
 F4::  RunOrAct("ahk_class PX_WINDOW_CLASS", "Sublime")
-F6::  RunOrAct("ahk_exe QQPlayer.exe", "QQPlayer")
-F7::  RunOrAct("ahk_class classFoxitReader", "Foxit")
-F9::  Run % Sites("Down") ;RunOrAct("ahk_exe Thunder.exe", Sites("Down"))
-F10:: Run % Sites("BaiduYun")
-!F2:: RunOrAct("ahk_class CabinetWClass", "fo:down")
-#M::  Send !{Space}N ;最小化当前窗口
+F9::  RunOrAct("ahk_class classFoxitReader", "Foxit")
+F10::  Run % Sites("BaiduYun")
+; !F2:: RunOrAct("ahk_class CabinetWClass", "fo:down")
 ^!W:: Send !{F4} ;关闭当前程序
 ^!T:: RunOrAct("ahk_exe ConEmu.exe", "cmd" )
 
@@ -101,19 +97,23 @@ MultiTask(){
 		if (key = "")
 			Run % Sites("ieSettings")
 		else if (key = "Off")
-			Run % Sites("setProxy") " -o Off "
+			Run % Sites("setProxy") " --off "
 		else if (key = "On")
-			Run % Sites("setProxy") " -o ProxyOnly "
+			Run % Sites("setProxy") " -p "
 		else
-			Run % Sites("setProxy") " -o ProxyOnly --proxy """ key """"  ;想在字符串里引用双引号 同时又加上变量 只能这样用
+			Run % Sites("setProxy") " -p """ key """"  ;想在字符串里引用双引号 同时又加上变量 只能这样用
 	}
 	else if (eg = "Pac" and key != "") {
 		if (key = "Off")
-			Run % Sites("setProxy") " -o Off "
+			Run % Sites("setProxy") " --off "
 		else if (key = "On")
-			Run % Sites("setProxy") " -o PacOnly --pac ""http://xduotai.com/pRsO3NGR3-.pac"""
+			Run % Sites("setProxy") " -a """ Sites("PAC2") """"
+		else if (key = "1")
+			Run % Sites("setProxy") " -a """ Sites("PAC1") """"
+		else if (key = "2")
+			Run % Sites("setProxy") " -a """ Sites("PAC2") """"
 		else
-			Run % Sites("setProxy") " -o PacOnly --pac """ key """"
+			Run % Sites("setProxy") " -a """ key """"
 	}
 	else if (eg = "Mirror") {
 		Run % Sites("Mirror") " -p " key ;用的时候路径必须带引号！
@@ -124,14 +124,14 @@ MultiTask(){
 			Run % resu[A_Index]
 	}
 	else if (eg="YoutubeDown") {
-		Run % Sites("YoutubeDown") " --video """ key """  --folder """ A_Temp """"
+		Run % Sites("YoutubeDown") " --video """ key """"
 	}
 	else if (eg="YoutubeDownList") {
 		filePath := A_Temp "\youtube-playlist.html"
 		file := FileOpen(filePath, "w")
 		file.Write(Clipboard)
 		file.Close()
-		Run % Sites("YoutubeDown") " --list """ filePath """  --folder """ A_Temp """"
+		Run % Sites("YoutubeDown") " --list """ filePath """"
 	}
 	else {
 		Run % Sites(eg, key)
@@ -197,10 +197,11 @@ Sites(eg="", key="", gp="") {
 	engines.insert(["sys:event", "GPedit.msc"]) ;事件查看器
 	engines.insert(["This", "C:\Program Files\Sublime Text 3\sublime_text.exe """ A_ScriptFullPath """ "]) ;编辑本脚本
 	engines.insert(["Gate", "D:\Solomon Xie\GateToSolomonXieMC@2.zip"])
-	engines.insert(["setProxy", "D:\Solomon Xie\Workspace\Gists\setRegProxy.py"]) ;Python设置代理脚本，接收命令行参数
+	engines.insert(["setProxy", "D:\Solomon Xie\Workspace\Gists\getProxy.py"]) ;Python设置代理脚本，接收命令行参数
 	engines.insert(["Mirror", "D:\Solomon Xie\Workspace\Gists\miniDiskMirror.py"]) ;Python设置任意文件夹镜像
 	engines.insert(["YoutubeDown", "D:\Solomon Xie\Workspace\Gists\youtubeDownload.py"]) ;Python下载Youtube视频
 	engines.insert(["sys:install", "rundll32.exe shell32.dll,Control_RunDLL appwiz.cpl,,1"]) ;安装/卸载软件
+	engines.insert(["ieSettings", "rundll32.exe shell32.dll, Control_RunDLL inetcpl.cpl, ,4L"]) ;设置代理
 	; --常用软件--
 	engines.insert(["Vim", "Vim"]) ;VIM
 	engines.insert(["MD", "https://stackedit.io/editor"]) ;Markdown编辑器
@@ -233,8 +234,8 @@ Sites(eg="", key="", gp="") {
 	engines.insert(["Wireshark", "C:\Program Files\Wireshark\Wireshark-gtk.exe"]) ;Wireshark
 	engines.insert(["Xiami", "C:\Program Files\Xiami\XMusic\XMusic.exe"]) ;虾米音乐
 	engines.insert(["VBox", "C:\Program Files\Oracle\VirtualBox\VirtualBox.exe"]) ;VirtualBox虚拟机
-	; --命令行操作--
-	engines.insert(["ieSettings", "rundll32.exe shell32.dll, Control_RunDLL inetcpl.cpl, ,4L"]) ;设置代理
+	engines.insert(["PAC1", "http://xduotai.com/yjyFwETMv-.pac"]) ;PAC 自动配置代理脚本
+	engines.insert(["PAC2", "https://pac.itzmx.com/abc.pac"]) ;PAC 自动配置代理脚本
 	; -- 邮箱及云盘 --
 	engines.insert(["QQmail", "http://mail.qq.com"]) ;
 	engines.insert(["163", "http://mail.163.com/"]) ;
@@ -256,6 +257,7 @@ Sites(eg="", key="", gp="") {
 	engines.insert(["Phone", "http://ip.cn/db.php?num="]) ;电话号码查询
 	engines.insert(["allitebooks", "http://www.allitebooks.com/?s=" key]) ;全部免费IT电子书
 	engines.insert(["app", "http://www.yiyeso.com/s/" key]) ;iOS应用搜索
+	engines.insert(["Yun", "http://pan.baidu.com"]) ;百度云盘网页版
 	; --技术文章--
 	engines.insert(["JianShu", "http://www.jianshu.com/search?q=" key, "Tech"]) ;简书
 	engines.insert(["Weixin", "http://weixin.sogou.com/weixin?type=2&query=" key, "Tech"]) ;微信文章搜索
@@ -271,6 +273,8 @@ Sites(eg="", key="", gp="") {
 	engines.insert(["RunOob", "http://www.runoob.com/?s=" key, "Tech"]) ;菜鸟教程
 	engines.insert(["4byte", "http://www.4byte.cn/q?wd=" key, "Tech"]) ;字节技术
 	engines.insert(["Gbtags", "http://www.gbtags.com/gb/search.htm?source=gbtags&s=" key, "Tech"]) ;极客标签
+	engines.insert(["GitSearch", "https://github.com/search?q=" key, "Tech"]) ;Github搜索
+	engines.insert(["Github", "https://github.com/"]) ;Github
 	; --在线视频--
 	engines.insert(["tudou", "http://www.soku.com/t/nisearch/" key, "Video"]) ;土豆网/优酷网
 	engines.insert(["youtube", "https://www.youtube.com/results?search_query=" key, "Video"]) ; Youtube
@@ -292,7 +296,7 @@ Sites(eg="", key="", gp="") {
 	engines.insert(["bttiantang", "http://www.bttiantang.com/s.php?q=" key, "BT"]) ;BT天堂
 	; --资源解析--
 	engines.insert(["flvcd", "http://www.flvcd.com/parse.php?format=&kw=" key, "getvideo"]) ;硕鼠视频解析
-	engines.insert(["saveFrom", "http://sfrom.net/" key,"getvideo"]) ;国外网站视频解析
+	engines.insert(["saveFrom", "http://en.savefrom.net/#url=" key]) ;国外网站视频解析
 	engines.insert(["saveMedia", "http://savemedia.com/watch?v=" key, "getvideo"]) ;国外网站视频解析
 	; --在线课程--
 	engines.insert(["jikexy", "http://search.jikexueyuan.com/course/?q=" key, "cnCourse"]) ;极客学院搜索
@@ -322,6 +326,7 @@ Sites(eg="", key="", gp="") {
 	engines.insert(["ip8", "http://ip.izmoney.com/", "ips"])
 	engines.insert(["ip9", "http://ip.qiaodm.com/", "ips"])
 	engines.insert(["ip10", "http://www.mayidaili.com/", "ips"])
+	engines.insert(["ip11", "http://www.fengyunip.com/free/foreign-high.html", "ips"])
 
 	if (gp = "") {
 		loop % engines.MaxIndex()
@@ -369,11 +374,10 @@ Chrome(){
 	Insert::Send {AppsKey}P ;-- 打印选中文字 --
 	F1::
 	{
-		Clipboard := ""
-		Send ^c
-		; ClipWait  ; 等待剪贴板中出现文本.
-		Run % Sites("Bing", Clipboard)
+		Send {AppsKey}S ;---搜索选中文字---
+		Return
 	}
+	F3::  Run % Sites("D")
 	Return
 }
 
