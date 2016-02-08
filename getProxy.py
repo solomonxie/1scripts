@@ -21,9 +21,8 @@ def main():
         elif o == '-a':    print Proxy().ieProxy('PacOnly')
         elif o == '--pac': print Proxy(pac=a).ieProxy('ProxyOnly')
         elif o == '--off': print Proxy().ieProxy('Off')
-    ProxyPool().update()
-    # for i in ProxyPool().getProxies():
-    #     print Proxy(i).check()
+    # ProxyPool().update()
+    for i in ProxyPool().getProxies(): print Proxy(i).check()
 
 class Proxy():
     def __init__(self, uri='', pac=''):
@@ -33,7 +32,7 @@ class Proxy():
         self.adr    = (self.host +':'+ self.port) if self.host and self.port else ''
         self.proxy  = {self.pto: self.adr}
         self.uri    = self.pto+'://'+self.adr
-        self.pac    = pac if pac else 'http://xduotai.com/pRsO3NGR3-.pac'
+        self.pac    = pac if pac else 'https://pac.itzmx.com/abc.pac'
 
     def check(self):
         '''
@@ -78,7 +77,7 @@ class Proxy():
                 # 如果是一位数则自动补上0，7为07，e为0e
                 return num if len(num)>1 else '0'+num 
         # 如果是设置IP代理的模式 则检查IP地址的有效性(允许为空，但不允许格式错误)
-        # if not self.check(): return '---Unexpected IP Address:%s---'%self.uri
+        if not self.check(): return '---Unexpected IP Address:%s---'%self.uri
         options = {'On':'0F','Off':'01','ProxyOnly':'03','PacOnly':'05','ProxyAndPac':'07','D':'09','DIP':'0B','DS':'0D'}
         if op == 'Off': # 关闭所有代理设置
             reg_value = '46,00,00,00,00,00,00,00,01'
@@ -99,13 +98,13 @@ class Proxy():
         settings = 'Windows Registry Editor Version 5.00\n[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings\Connections]\n"DefaultConnectionSettings"=hex:%s' % reg_value
         # print settings #调试用
         # === 生成reg文件并导入到注册表中 ===
-        filePath = os.getcwd() + '\DefaultConnectionSettings.reg' #放到命令行的工作目录(可跨系统操作)
+        filePath = os.environ['TEMP'] + '\DefaultConnectionSettings.reg' #放到命令行的工作目录(可跨系统操作)
         with open(filePath, 'w') as f:
             f.write( settings )
         cmd = 'reg import "%s"' % filePath
         if len(os.popen(cmd).readlines()) > 1: return '---Failed on registering reg file.---'
-        # 删除临时的.reg文件
-        if os.path.exists(filePath): os.remove(filePath)
+        # 删除临时的.reg文件 (如果文件目录在临时文件夹中，就不用删了)
+        # if os.path.exists(filePath): os.remove(filePath)
         return 'Successfully registered proxy settings.'
 
 
@@ -146,9 +145,6 @@ class ProxyPool():
                     prx = ''.join( [c[2] for c in chaos if c])
                     mix = pto + prx + port
                     if mix: self.lines.append(mix)
-    def checkIPs(self, prx):
-        if Proxy(prx).check() > 0:
-            self.uris.append(prx)
 
     def update(self):
         # 定制所有抓取代理的网址及正则表达式
@@ -158,20 +154,26 @@ class ProxyPool():
                       're': ['<td>(\d+\.\d+\.\d+\.\d+)</td>\s*<td>(\d+)</td>\s*<td>[^<>]*</td>\s*<td>([^<>]*)</td>', 0, 1, 2] })
         sites.append({'url': 'http://www.xicidaili.com/nn/',
                       'loc':'proxyHTML/xicidaili.com.html',
-                      're': ['<td>(\d+\.\d+\.\d+\.\d+)</td>\s*<td>(\d+)</td>\s*<td>[^<>]*</td>\s*<td>[^<>]*</td>\s*<td>([^<>]*)</td>', 0,1,2]})    
-        count = 0
+                      're': ['<td>(\d+\.\d+\.\d+\.\d+)</td>\s*<td>(\d+)</td>\s*<td>[^<>]*</td>\s*<td>[^<>]*</td>\s*<td>([^<>]*)</td>', 0,1,2]})
+        # sites.append({'url': 'http://www.fengyunip.com/free/china-high.html',
+        #               'loc':'proxyHTML/fengyunip.com.html',
+        #               're': ['<td>(\d+\.\d+\.\d+\.\d+)</td>\s*<td>(\d+)</td>\s*<td>[^<>]*</td>\s*<td>[^<>]*</td>\s*<td>([^<>]*)</td>', 0,1,2]})
+        def __checkIPs(prx):
+            if Proxy(prx).check() > 0:
+                self.uris.append(prx)
         multiThread(func=self.extractIP, prams=sites)
-        count = len(self.lines)
         print 'Retrived %d proxies, now start to test each of them.'%len(self.lines)
         # 开始检测有效性，只收录可用代理
-        # uris = [i for i in self.lines if Proxy(i).check() > 0]
-        multiThread(func=self.checkIPs, prams=self.lines)
+        # uris = [i for i in self.lines if Proxy(i).check() > 0] # 单线程检测
+        multiThread(func=__checkIPs, prams=self.lines) # 多线程检测
         print 'Got %d varified proxies.'%len(self.uris)
         with open('proxyJungle.txt', 'w') as f:
             f.write('\n'.join(self.uris))
         # print self.uris
-        print '-----Stored %d proxies for this time.'%count
-        return count
+        print '-----Stored %d proxies for this time.'%len(self.lines)
+
+    # def update2(self, func):
+        # 
 
 def getHeader():
     # 随机使用一个浏览身份

@@ -1,0 +1,25 @@
+To: solomonxie@foxmail.com
+Subject: =?UTF-8?B?5pawV29yZFByZXNz56uZ54K5?=
+Date: Sat, 6 Feb 2016 14:00:13 +0000
+From: WordPress <wordpress@192.168.1.101>
+Message-ID: <136c9ed6d20aaa9856ef0ea12b75e8f1@192.168.1.101>
+X-Mailer: PHPMailer 5.2.14 (https://github.com/PHPMailer/PHPMailer)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+您的新WordPress站点已被成功建立：
+
+http://192.168.1.101/yeatone
+
+您可以用以下信息登录管理员账户：
+
+用户名：admin
+密码：在安装过程中您输入的密码。
+在此登录：http://192.168.1.101/yeatone/wp-login.php
+
+我们希望您喜欢您的新站点。谢谢！
+
+——WordPress团队
+https://wordpress.org/
+
