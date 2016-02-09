@@ -19,16 +19,16 @@ def main():
     for o,a in opts:
         if   o == '-p':    print Proxy(a).ieProxy('ProxyOnly')
         elif o == '-a':    print Proxy().ieProxy('PacOnly')
-        elif o == '--pac': print Proxy(pac=a).ieProxy('ProxyOnly')
+        elif o == '--pac': print Proxy(pac=a).ieProxy('PacOnly')
         elif o == '--off': print Proxy().ieProxy('Off')
     # ProxyPool().update()
-    for i in ProxyPool().getProxies(): print Proxy(i).check()
+    # for i in ProxyPool().getProxies(): print Proxy(i).check()
 
 class Proxy():
     def __init__(self, uri='', pac=''):
         self.pto    = 'https' if 'https' in uri else 'http'
         self.host   = ''.join(re.findall('\d+\.\d+\.\d+\.\d+', uri))
-        self.port   = ''.join(re.findall(':(\d+)', uri))
+        self.port   = ''.join(re.findall('[:\s]+(\d+)', uri))
         self.adr    = (self.host +':'+ self.port) if self.host and self.port else ''
         self.proxy  = {self.pto: self.adr}
         self.uri    = self.pto+'://'+self.adr
@@ -66,7 +66,8 @@ class Proxy():
     def ieProxy(self, op):
         if not op : return 'No assigned operation.'
         # 只有代理地址测试通过了才为本机设置IP
-        if op == 'ProxyOnly' and not self.check(): return 'Proxy did not change because the address failed on test.'
+        if op == 'ProxyOnly':
+            if not self.check(): return 'Proxy did not change because [%s] failed on test.'%self.uri
         def __toHex(obj):
             if   obj == '': return ''
             elif obj == 0 or obj == '0' or obj == '00': return '00'
@@ -76,8 +77,6 @@ class Proxy():
                 num = str(hex(obj)).replace('0x', '')
                 # 如果是一位数则自动补上0，7为07，e为0e
                 return num if len(num)>1 else '0'+num 
-        # 如果是设置IP代理的模式 则检查IP地址的有效性(允许为空，但不允许格式错误)
-        if not self.check(): return '---Unexpected IP Address:%s---'%self.uri
         options = {'On':'0F','Off':'01','ProxyOnly':'03','PacOnly':'05','ProxyAndPac':'07','D':'09','DIP':'0B','DS':'0D'}
         if op == 'Off': # 关闭所有代理设置
             reg_value = '46,00,00,00,00,00,00,00,01'
