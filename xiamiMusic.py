@@ -15,7 +15,7 @@ class Xiami():
         self.folder = '%s\\xiami(%s)\\'%(os.getcwd(), time.strftime('%Y-%m-%d'))
         if not os.path.exists(self.folder): os.mkdir(self.folder)
         self.online = True
-        self.collections = []
+        self.playlists = []
         self.singers = []
         self.songs = []
         self.albums = []
@@ -37,77 +37,96 @@ class Xiami():
         self.saveToSqlite()
 
     def saveToSqlite(self):
-        # === 将数据保存到sqlite数据库中 ===
         self.__create_xiami_db()
-        self.loadCollections()
+        # self.loadPlaylists()
+        # self.loadSingers()
+        # self.loadSongs()
+        self.loadAlbums()
 
-    def __sql(self, sql):
+    def __sql(self, sqls=[]):
         cnet = sqlite3.connect(self.dbname)
         cur  = cnet.cursor()
-        cur.execute(sql)
+        for s in sqls: cur.execute(s)
         cnet.commit()
         cur.close()
         cnet.close()
         return ''
 
-    def loadCollections(self, url='', pn=1):
-        if not url: url = 'http://www.xiami.com/space/collect?u=%s&order=1&p=1' % self.xiamiID
+    def loadPlaylists(self, pn=1):
+        url = 'http://www.xiami.com/space/collect/u/{}/order/1/p/1/page/{}'.format(self.xiamiID, pn)
         print url
         r_session = requests.session()
         html = u'%s'%requests.get(url, headers=self.hd, timeout=5).text
         # 本地测试 # html = open(u'.tmp/xiamiMusic/我的精选集.html', 'r').read()
-        soup = BeautifulSoup(html, 'html5lib')
-        # 先递归读取所有精选集列表页, 然后再回归读取读取每个项的页面
-        npage = u''.join( re.findall('class="p_redirect_l" href="([^"]+)"', html) )
-        if npage: self.loadCollections(url='http://www.xiami.com' + npage, pn=pn+1)
-        # 获取页面中的id和日期列表 set()集合筛除重复项
-        ids = set( u''.join(re.findall('<a href="\D+(\d+)"', unicode(i))) for i in soup.select('div.detail') )
-        dates = set( i.get_text(strip=True) for i in soup.select('div.detail .time') )
+        # 获取页面中的id和日期列表 set()集合筛除重复项 
+        ids = set( re.findall('href="/collect/(\d+)"', html) )
+        # dates = set( i.get_text(strip=True) for i in soup.select('div.detail .time') )
         # 根据精选集列表, 逐个打开详情页面进行抓取
-        # multiThread(func=self.__eachCollection2, prams=ids) # 多线程
-        # 单进程 # 
-        for i in ids: self.__eachCollection(aid=i); break; #break用作测试
+        # 单进程 # for i in ids: self.__eachPlaylist(aid=i);  break; #break用作测试
+        multiThread(func=self.__eachPlaylist, prams=ids) # 多线程
+        print 'Loaded {} playlists.'.format(len(ids))
+        # 完成一张精选集的深度挖掘后, 继续下一页
+        npage = u''.join( re.findall('class="p_redirect_l" href="([^"]+)"', html) )
+        if npage: self.loadPlaylists(pn=pn+1)
 
-    def __eachCollection(self, aid):
-        url = 'http://www.xiami.com/collect/%s'%aid
+    def __eachPlaylist(self, aid):
+        url = 'http://www.xiami.com/collect/{}'.format(aid)
         print url
         r_session = requests.session()
         html = requests.get(url, headers=self.hd, timeout=5).text
         # 本地测试 # html = open(u'.tmp/xiamiMusic/某精选集.html', 'r').read()
-        update = u''.join(re.findall('</span>\s*(\d{4}-\d{2}-\d{2})', html))
+        soup = BeautifulSoup(html, 'html5lib')
+        title = u''.join( u''.join([i.get_text() for i in soup.select('div.info_collect_main h2')]) )
+        print title
+        # update = u''.join(re.findall(r'</span>\s*(\d{4}-\d{2}-\d{2})', html))
         # set()集合筛除重复项
         ids = set( unicode(i) for i in re.findall('id="totle_(\d+)"', html) )
-        print ids
-        # self.__sql('INSERT INTO xm_collections')
+        # self.playlists.append({ aid: {'song_ids': ids} })
+        self.__sql([u'''
+            REPLACE INTO xm_playlists (list_id, title, song_ids) VALUES({},"{}","{}"); 
+        '''.format(aid, title, ';'.join(ids)) ])
+        # 顺便也把收藏的歌曲ID添加到歌曲库中
+        self.__sql([u'''REPLACE INTO xm_songs (song_id) VALUES({});'''.format(i) for i in ids])
 
     def loadSingers(self, pn=1):
-        url = 'http://www.xiami.com/relation/following-artist/page/%d'%pn
+        url = 'http://www.xiami.com/space/lib-artist/u/{}/page/{}'.format(self.xiamiID, pn)
         print url
         r_session = requests.session()
         html = u'%s'%requests.get(url, headers=self.hd, timeout=5).text
-        resu = [unicode(i.get_text(strip=True)) for i in BeautifulSoup(html, 'html5lib').select('a.name')]
-        if len(resu) < 1: return
-        self.singers += resu
-        print 'loaded %d singers.'%len(resu)
-        # === (这里开始只有在第一页时运行会被调用) ===
+        # 本地测试 # html = open(u'.tmp/xiamiMusic/收藏的艺人.html', 'r').read()
+        soup = BeautifulSoup(html, 'html5lib')
+        result = soup.select('div.info .main .name a[href^=/artist/]')
+        if len(result) < 1: return
+        self.__sql([u'''
+            REPLACE INTO xm_artists (artist_id, name) VALUES({},"{}"); '''.format(
+                u''.join(re.findall('(\d+)', i['href'])),
+                u''.join(i['title'])
+        ) for i in result])
+        print 'Updated {} artists'.format(len(result))
+        # >>>>>>>> (从这里开始只有在第一页时运行会被调用) >>>>>>>>
         if pn == 1: # 计算总页码 并从第2页开始使用多线程
             n = int( '\n'.join(re.findall('<span>\([^\d]+\d+[^\d]+(\d+)[^\d]+\)</span>', html)) )
-            per = len(resu)
+            per = len(result)
             tp = n/per if n%per == 0 else n/per+1
-            print 'Total: %d singers, %d pages.'%(n, tp)
+            print 'Total: {} singers, {} pages.'.format(n, tp)
             t = 10 # 控制线程数 同一时间运行不要超过10个线程
-            for i in range(0, tp, t):
-                multiThread(func=self.loadSingers, prams=range(i+2,i+t+2) if tp-i>10 else range(i+2,tp+1))
+            for i in range(0, tp, t): multiThread(
+                func=self.loadSingers, 
+                prams=range(i+2,i+t+2) if tp-i>10 else range(i+2,tp+1)
+            )
 
-    def loadLikedSongs(self, pn=1):
-        url = 'http://www.xiami.com/space/lib-song/u/%s/page/%d' % (self.xiamiID, n)
+    def loadSongs(self, pn=1):
+        url = 'http://www.xiami.com/space/lib-song/u/{}/page/{}'.format(self.xiamiID, pn)
         print url
         r_session = requests.session()
         html = u'%s'%requests.get(url, headers=self.hd, timeout=5).text
-        # with open(self.folder+r'\songs-1.html', 'r') as f: html = f.read() # 调试用
-        resu = [unicode(i.get_text(strip=True)) for i in BeautifulSoup(html, 'html5lib').select('td.song_name')]
+        # 本地测试 # html = open(u'.tmp/xiamiMusic/收藏的歌曲.html', 'r').read()
+        resu = BeautifulSoup(html, 'html5lib').select('td.song_name')
         if len(resu) < 1: return
-        self.songs += resu
+        self.__sql([u'''
+            REPLACE INTO xm_songs (song_id) VALUES({}); '''.format(
+                u''.join(re.findall('song/(\d+)"', u'%s'%i.prettify()))
+        ) for i in resu])
         print 'loaded %d liked songs.'%len(resu)
         # === (这里开始只有在第一页时运行会被调用) ===
         if pn == 1: # 计算总页码 并从第2页开始使用多线程
@@ -117,18 +136,21 @@ class Xiami():
             print 'Total: %d songs, %d pages.'%(n, tp)
             t = 10 # 控制线程数 同一时间运行不要超过10个线程
             for i in range(0, tp, t):
-                multiThread(func=self.loadLikedSongs, prams=range(i+2,i+t+2) if tp-i>10 else range(i+2,tp+1))
+                multiThread(func=self.loadSongs, prams=range(i+2,i+t+2) if tp-i>10 else range(i+2,tp+1))
 
     def loadAlbums(self, pn=1):
-        url = 'http://www.xiami.com/space/lib-album/u/%s/page/%d' % (self.xiamiID, n)
+        url = 'http://www.xiami.com/space/lib-album/u/{}/page/{}'.format(self.xiamiID, pn)
         print url
         r_session = requests.session()
         html = u'%s'%requests.get(url, headers=self.hd, timeout=5).text
-        # with open(self.folder+r'\albums-1.html', 'r') as f: html = f.read() # 调试用
-        resu = ['--'.join(re.findall('title="([^"]+)"',unicode(i))) for i in BeautifulSoup(html, 'html5lib').select('div.detail div.name')]
+        # 本地测试 # html = open(u'.tmp/xiamiMusic/收藏的专辑.html', 'r').read()
+        resu = BeautifulSoup(html, 'html5lib').select('div.album_item100_thread')
         if len(resu) < 1: return
-        self.albums += resu
-        print 'loaded %d albums.'%len(resu)
+        print 'Loaded %d albums.'%len(resu)
+        ids = [album['rel'] for album in resu]
+        # 单进程 # for i in resu: self.loadEachAlbum(i['rel']); break;
+        multiThread(func=self.loadEachAlbum, prams=ids)
+        # self.__sql([u'''REPLACE INTO xm_albums (album_id) VALUES({}); '''.format(i) for i in ids])
         # === (这里开始只有在第一页时运行会被调用) ===
         if pn == 1: # 计算总页码 并从第2页开始使用多线程
             n = int( '\n'.join(re.findall('<span>\([^\d]+\d+[^\d]+(\d+)[^\d]+\)</span>', html)) )
@@ -139,10 +161,23 @@ class Xiami():
             for i in range(0, tp, t):
                 multiThread(func=self.loadAlbums, prams=range(i+2,i+t+2) if tp-i>10 else range(i+2,tp+1))
 
+    def loadEachAlbum(self, abmid):
+        url = 'http://www.xiami.com/album/{}'.format(abmid)
+        print url
+        r_session = requests.session()
+        html = u'%s'%requests.get(url, headers=self.hd, timeout=5).text
+        # 本地测试 # html = open(u'.tmp/xiamiMusic/某专辑.html', 'r').read()
+        title = u''.join( re.findall('<h1 property="v:itemreviewed">(.+)</h1>', html) )
+        artist_id = u''.join( re.findall('<a href="/artist/(\d+)"', html) )
+        # track_list = u';'.join([i['value'] for i in BeautifulSoup(html, 'html5lib').select('table.track_list tr input[value]') ])
+        self.__sql([u'''
+            REPLACE INTO xm_albums (album_id, title, artist_id) VALUES({}, "{}", {}); 
+        '''.format(abmid, title, artist_id) ])
+
     def saveToHtml(self):
         # === 将数据保存为html文件,并打包为zip压缩文件 ===
         # 1.获取所有自建精选集并保存列表>>>>
-        self.loadCollections()
+        self.loadPlaylists()
         print 'Finished loading all %d collections.'%len(self.collections)
         with open(self.folder+r'\collections.html', 'w') as f:
             f.write( '\n'.join(self.collections).encode('utf-8') )
@@ -163,7 +198,7 @@ class Xiami():
             f.write('<br>'.join(self.albums).encode('utf-8'))
         # ==== 打包文件 =====
         self.archive()
-        
+
     def archive(self, dele=True):
         files = os.listdir(self.folder) # listdir()在接收unicode参数时会返回unicode格式的文件目录
         folder = [fo for fo in self.folder.split('\\') if fo][-1]
@@ -180,23 +215,21 @@ class Xiami():
         cur  = cnet.cursor()
         # 创建表单: 自建精选集
         cur.execute('''
-            CREATE TABLE IF NOT EXISTS `xm_collections` (
-                `clt_id`    INTEGER NOT NULL PRIMARY KEY UNIQUE,
-                `editor`    TEXT DEFAULT '制作人',
-                `song_ids`   TEXT
-                `create_time`   TEXT DEFAULT '2000-01-01',
-                `update_time`   TEXT DEFAULT '2000-01-01',
-                `artwork`   BLOB
+            CREATE TABLE IF NOT EXISTS `xm_playlists` (
+                `list_id`    INTEGER NOT NULL PRIMARY KEY UNIQUE,
+                `title`  TEXT,
+                `song_ids`  TEXT,
+                `cover`   TEXT
             );
         ''')
         cur.execute('''
             CREATE TABLE IF NOT EXISTS `xm_songs` (
                 `song_id`   TEXT NOT NULL PRIMARY KEY UNIQUE,
-                `title` TEXT NOT NULL,
+                `title` TEXT,
                 `artist_id` TEXT,
                 `album_id`  TEXT,
                 `track_number`  INTEGER,
-                `cover` BLOB,
+                `cover` TEXT,
                 `lyrics`    TEXT,
                 `marked_status` INTEGER
             );
@@ -204,6 +237,7 @@ class Xiami():
         cur.execute('''
             CREATE TABLE IF NOT EXISTS `xm_albums` (
                 `album_id`  TEXT NOT NULL PRIMARY KEY UNIQUE,
+                `title`  TEXT,
                 `rate`  INTEGER,
                 `artist_id` TEXT,
                 `language`  TEXT,
@@ -219,6 +253,8 @@ class Xiami():
             CREATE TABLE IF NOT EXISTS `xm_artists` (
                 `artist_id`  TEXT NOT NULL PRIMARY KEY UNIQUE,
                 `name`  TEXT,
+                `name_cn`  TEXT,
+                `name_en`  TEXT,
                 `region`  TEXT,
                 `genre_ids`  TEXT,
                 `intro_cn`  TEXT,
@@ -230,19 +266,6 @@ class Xiami():
             CREATE TABLE IF NOT EXISTS `xm_genres` (
                 `genre_id`  TEXT NOT NULL PRIMARY KEY UNIQUE,
                 `name`  TEXT
-            );
-        ''')
-        cur.execute('''
-            CREATE TABLE IF NOT EXISTS `xm_albums` (
-                `album_id`  TEXT NOT NULL PRIMARY KEY UNIQUE,
-                `rate`  INTEGER,
-                `artist_id` TEXT,
-                `language`  TEXT,
-                `corp`  TEXT,
-                `release_date`  TEXT,
-                `genre_ids` TEXT,
-                `intro_cn`  TEXT,
-                `intro_en`  TEXT
             );
         ''')
         # cur.execute('INSERT INTO test VALUES(1, "hello sqlite")')
