@@ -40,23 +40,27 @@ class Proxy():
         Notes   : 先到网站上获取本机真实IP再做对比
                   验证通过返回True，失败则返回False。
         '''
-        print 'Testing %s'%self.adr
         if not self.adr: return -1
+        # 先关上本地已设置的所有代理再开始验证
+        # self.ieProxy('Off')
         # 第一重验证：ping
+        print 'Pinging %s'%self.host
         icmp = os.popen('ping %s'%self.host).read()
         resu = re.findall( '(\d+)ms[^\d]+(\d+)ms[^\d]+(\d+)ms', icmp )
         # print icmp
         if len(resu) < 1: return -1 # 如果没有ping通，则直接中断下一步检测
         speed = resu[0][-1]
-        # 第二重验证：打开网页
-        try:
-            tester = 'http://www.ip.cn'
-            # print 'Opening "%s" to test proxy %s.'%(tester, self.proxy)
-            html = requests.get(tester, headers=getHeader(), proxies=self.proxy, timeout=3).text
-        except Exception as e:
-            # print e
-            return 0
-        # 第三重验证：检测该代理是否高匿
+        # 第四重验证: 打开google验证是否能翻墙
+        print 'Connecting web outside GFW by %s'%self.adr
+        try: r = requests.get('http://www.ip.cn', headers=getHeader(), proxies=self.proxy, timeout=3)
+        except Exception as e: return 0
+        os.popen('start chrome https://www.google.com/#newwindow=1&q=%s'%self.adr)
+        # 第三重验证：打开验证公网IP的网站
+        print 'Connecting web inside GFW by %s'%self.adr
+        try: html = requests.get('http://www.ip.cn', headers=getHeader(), proxies=self.proxy, timeout=3).text
+        except Exception as e: return 0
+        print 'Checking anonymity of %s'%self.adr
+        # 第四重验证：检测该代理是否高匿
         resu = ''.join( re.findall('<code>([^<>]+)</code>', html) )
         if self.host not in resu: return 0
         # print 'My IP detected on the Internet is %s.'%resu
