@@ -1,3 +1,4 @@
 mailoutput
 fromweb
+.tmp
 *.pyc
