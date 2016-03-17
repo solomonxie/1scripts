@@ -44,20 +44,25 @@ class Xiami():
         self.loadAlbums()
 
     def __sql(self, sqls=[]):
-        cnet = sqlite3.connect(self.dbname)
-        cur  = cnet.cursor()
-        for s in sqls: cur.execute(s)
-        cnet.commit()
-        cur.close()
-        cnet.close()
+        try:
+            cnet = sqlite3.connect(self.dbname)
+            cur  = cnet.cursor()
+            for s in sqls: cur.execute(s)
+            cnet.commit()
+            cur.close()
+            cnet.close()
+        except Exception, e: print e;
         return ''
 
     def loadPlaylists(self, pn=1):
         url = 'http://www.xiami.com/space/collect/u/{}/order/1/p/1/page/{}'.format(self.xiamiID, pn)
         print url
         r_session = requests.session()
-        html = u'%s'%requests.get(url, headers=self.hd, timeout=5).text
-        # 本地测试 # html = open(u'.tmp/xiamiMusic/我的精选集.html', 'r').read()
+        html = ''
+        try:
+            html = u'%s'%requests.get(url, headers=self.hd, timeout=5).text
+            # 本地测试 # html = open(u'.tmp/xiamiMusic/我的精选集.html', 'r').read()
+        except Exception, e: print e; print 'Reloading this function'; self.loadPlaylists(pn);
         # 获取页面中的id和日期列表 set()集合筛除重复项 
         ids = set( re.findall('href="/collect/(\d+)"', html) )
         # dates = set( i.get_text(strip=True) for i in soup.select('div.detail .time') )
@@ -73,8 +78,11 @@ class Xiami():
         url = 'http://www.xiami.com/collect/{}'.format(aid)
         print url
         r_session = requests.session()
-        html = requests.get(url, headers=self.hd, timeout=5).text
-        # 本地测试 # html = open(u'.tmp/xiamiMusic/某精选集.html', 'r').read()
+        html = ''
+        try:
+            html = requests.get(url, headers=self.hd, timeout=5).text
+            # 本地测试 # html = open(u'.tmp/xiamiMusic/某精选集.html', 'r').read()
+        except Exception, e: print e; print 'Reloading this function'; self.__eachPlaylist(aid);
         soup = BeautifulSoup(html, 'html5lib')
         title = u''.join( u''.join([i.get_text() for i in soup.select('div.info_collect_main h2')]) )
         print title
@@ -92,8 +100,11 @@ class Xiami():
         url = 'http://www.xiami.com/space/lib-artist/u/{}/page/{}'.format(self.xiamiID, pn)
         print url
         r_session = requests.session()
-        html = u'%s'%requests.get(url, headers=self.hd, timeout=5).text
-        # 本地测试 # html = open(u'.tmp/xiamiMusic/收藏的艺人.html', 'r').read()
+        html = ''
+        try:
+            html = u'%s'%requests.get(url, headers=self.hd, timeout=5).text
+            # 本地测试 # html = open(u'.tmp/xiamiMusic/收藏的艺人.html', 'r').read()
+        except Exception, e: print e; print 'Reloading this function'; self.loadSingers(pn);
         soup = BeautifulSoup(html, 'html5lib')
         result = soup.select('div.info .main .name a[href^=/artist/]')
         if len(result) < 1: return
@@ -119,8 +130,11 @@ class Xiami():
         url = 'http://www.xiami.com/space/lib-song/u/{}/page/{}'.format(self.xiamiID, pn)
         print url
         r_session = requests.session()
-        html = u'%s'%requests.get(url, headers=self.hd, timeout=5).text
-        # 本地测试 # html = open(u'.tmp/xiamiMusic/收藏的歌曲.html', 'r').read()
+        html = ''
+        try:
+            html = u'%s'%requests.get(url, headers=self.hd, timeout=5).text
+            # 本地测试 # html = open(u'.tmp/xiamiMusic/收藏的歌曲.html', 'r').read()
+        except Exception, e: print e; print 'Reloading this function'; self.loadSongs(pn);
         resu = BeautifulSoup(html, 'html5lib').select('td.song_name')
         if len(resu) < 1: return
         self.__sql([u'''
@@ -142,12 +156,16 @@ class Xiami():
         url = 'http://www.xiami.com/space/lib-album/u/{}/page/{}'.format(self.xiamiID, pn)
         print url
         r_session = requests.session()
-        html = u'%s'%requests.get(url, headers=self.hd, timeout=5).text
-        # 本地测试 # html = open(u'.tmp/xiamiMusic/收藏的专辑.html', 'r').read()
+        html = ''
+        try:
+            html = u'%s'%requests.get(url, headers=self.hd, timeout=5).text
+            # 本地测试 # html = open(u'.tmp/xiamiMusic/收藏的专辑.html', 'r').read()
+        except Exception, e: print e; print 'Reloading this function.'; self.loadAlbums(pn);
         resu = BeautifulSoup(html, 'html5lib').select('div.album_item100_thread')
         if len(resu) < 1: return
         print 'Loaded %d albums.'%len(resu)
         ids = [album['rel'] for album in resu]
+        print 'Start to retrive {} albums.'.format(len(ids))
         # 单进程 # for i in resu: self.loadEachAlbum(i['rel']); break;
         multiThread(func=self.loadEachAlbum, prams=ids)
         # self.__sql([u'''REPLACE INTO xm_albums (album_id) VALUES({}); '''.format(i) for i in ids])
@@ -165,8 +183,13 @@ class Xiami():
         url = 'http://www.xiami.com/album/{}'.format(abmid)
         print url
         r_session = requests.session()
-        html = u'%s'%requests.get(url, headers=self.hd, timeout=5).text
-        # 本地测试 # html = open(u'.tmp/xiamiMusic/某专辑.html', 'r').read()
+        html = ''
+        try:
+            html = u'%s'%requests.get(url, headers=self.hd, timeout=5).text
+            # 本地测试 # html = open(u'.tmp/xiamiMusic/某专辑.html', 'r').read()
+        except Exception as e:
+            print e; print '----Reloading this thread.-----'
+            self.loadEachAlbum(abmid)
         title = u''.join( re.findall('<h1 property="v:itemreviewed">(.+)</h1>', html) )
         artist_id = u''.join( re.findall('<a href="/artist/(\d+)"', html) )
         # track_list = u';'.join([i['value'] for i in BeautifulSoup(html, 'html5lib').select('table.track_list tr input[value]') ])
@@ -183,7 +206,7 @@ class Xiami():
             f.write( '\n'.join(self.collections).encode('utf-8') )
         # 2.获取所有关注歌手并保存为列表>>>>
         self.loadSingers()
-        print 'Finished loading all %d singerd singers.'%len(self.singers)
+        print 'Finished loading all %d singers.'%len(self.singers)
         with open(self.folder+r'\singers.html', 'w') as f:
             f.write('<hr>'.join(self.singers).encode('utf-8'))
         # 3.获取所有收藏的歌曲并保存为列表>>>>
@@ -276,13 +299,14 @@ class Xiami():
 
 def multiThread(func, prams):
     threadList = []
-    for p in prams:
+    for p in prams[:10]:
         t = Thread(target=func, args=(p,))
         t.start()
         threadList.append(t)
     print '\n-----Processing with %d threads.-----\n'%len(threadList)
     for sub in threadList:
         sub.join()
+    if len(prams) > 10: multiThread(func, prams[10:])
 
 
 if __name__ == '__main__':
