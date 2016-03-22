@@ -28,7 +28,7 @@ ScrollLock::MultiTask()
 ; --- 快捷启动 ---
 F1::  RunOrAct("ahk_exe chrome.exe", "Chrome")
 ; F3::  RunOrAct("ahk_exe WINWORD.EXE", "Word")
-F4::  Run % Sites("Sublime") ;RunOrAct("ahk_class PX_WINDOW_CLASS", "Sublime")
+F4::  Run % Sites("Subl") ;RunOrAct("ahk_class PX_WINDOW_CLASS", "Sublime")
 ; F9::  RunOrAct("ahk_exe filezilla.exe", "FTP")
 F10::  RunOrAct("ahk_exe filezilla.exe", "FTP")
 ; !F2:: RunOrAct("ahk_class CabinetWClass", "fo:down")
@@ -168,8 +168,7 @@ Sites(eg="", key="", gp="") {
 	engines.insert(["fo:Work", "D:\Workspace\"])
 	engines.insert(["fo:Web", "D:\Workspace\Websites\"])
 	engines.insert(["fo:My", "D:\Solomon Xie\"])
-	engines.insert(["fo:MyWork", "D:\Solomon Xie\Workspace\"])
-	engines.insert(["fo:Gist", "D:\Solomon Xie\Workspace\Gists"])
+	engines.insert(["fo:Gists", "D:\Workspace\Gists"])
 	engines.insert(["fo:Pic", "D:\Pictures\"])
 	engines.insert(["fo:Wa", "D:\Documents\_WEB_ARTICLES\"])
 	engines.insert(["fo:History", "C:\Users\Administrator\AppData\Roaming\Microsoft\Windows\Recent"])
@@ -196,8 +195,8 @@ Sites(eg="", key="", gp="") {
 	engines.insert(["sys:hosts", "C:\Windows\System32\drivers\etc\hosts"]) ;事件查看器
 	engines.insert(["This", "C:\Program Files\Sublime Text 3\sublime_text.exe """ A_ScriptFullPath """ "]) ;编辑本脚本
 	engines.insert(["Gate", "D:\Solomon Xie\GateToSolomonXieMC@2.zip"])
-	engines.insert(["setProxy", "D:\Solomon Xie\Workspace\Gists\getProxy.py"]) ;Python设置代理脚本，接收命令行参数
-	engines.insert(["Mirror", "D:\Solomon Xie\Workspace\Gists\miniDiskMirror.py"]) ;Python设置任意文件夹镜像
+	engines.insert(["setProxy", "D:\Workspace\Gists\getProxy.py"]) ;Python设置代理脚本，接收命令行参数
+	engines.insert(["Mirror", "D:\Workspace\Gists\miniDiskMirror.py"]) ;Python设置任意文件夹镜像
 	engines.insert(["sys:install", "rundll32.exe shell32.dll,Control_RunDLL appwiz.cpl,,1"]) ;安装/卸载软件
 	engines.insert(["ieSettings", "rundll32.exe shell32.dll, Control_RunDLL inetcpl.cpl, ,4L"]) ;设置代理
 	; --常用软件--
@@ -207,7 +206,7 @@ Sites(eg="", key="", gp="") {
 	engines.insert(["ss", "D:\Workspace\bin\Shadowsocks\Shadowsocks.exe"])
 	engines.insert(["sqlite", "D:\Workspace\bin\sqlitebrowser\sqlitebrowser.exe " key])
 	engines.insert(["Lantern", "C:\Users\Administrator\AppData\Roaming\Lantern\lantern.exe"]) ;蓝灯翻墙
-	engines.insert(["Ubuntu", "C:\Program Files\Oracle\VirtualBox\VirtualBox.exe --comment Xunbuntu 32bit --startvm 2ac730ae-3424-4eea-b849-18fe5430e317"]) ;SSH连接
+	engines.insert(["Lubuntu", "C:\Program Files\Oracle\VirtualBox\VirtualBox.exe --comment Lubuntu --startvm 689b1ec3-b2ea-4e39-9c40-04bdfa465ecf"]) ;SSH连接
 	engines.insert(["MD", "https://stackedit.io/editor"]) ;Markdown编辑器
 	engines.insert(["MD2", "http://www.jianshu.com/writer#/"]) ;Markdown编辑器 简书
 	engines.insert(["MD3", "C:\Program Files\Google\Chrome\Application\chrome.exe  --profile-directory=Default --app-id=kidnkfckhbdkfgbicccmdggmpgogehop"]) ;Markdown编辑器 马克飞象
@@ -236,7 +235,7 @@ Sites(eg="", key="", gp="") {
 	engines.insert(["Publisher", "MSPUB"]) ;Ms Office Publisher
 	engines.insert(["Xampp", "C:\xampp\xampp-control.exe"]) ;XAMPP服务器
 	engines.insert(["Graphviz", "C:\Program Files\Graphviz2.38\bin\gvedit.exe"])
-	engines.insert(["Sublime", "C:\Program Files\Sublime Text 3\sublime_text.exe"]) ;Sublime Text
+	engines.insert(["Subl", "C:\Program Files\Sublime Text 3\sublime_text.exe"]) ;Sublime Text
 	engines.insert(["Foxit", "C:\Program Files\Foxit Software\Foxit Reader\FoxitReader.exe"]) ;Foxit浏览器
 	engines.insert(["FTP", "C:\Program Files\FileZilla FTP Client\filezilla.exe"]) ;FTP上传工具
 	engines.insert(["Wireshark", "C:\Program Files\Wireshark\Wireshark-gtk.exe"]) ;Wireshark
@@ -296,10 +295,10 @@ Sites(eg="", key="", gp="") {
 	engines.insert(["bttiantang", "http://www.bttiantang.com/s.php?q=" key, "BT"]) ;BT天堂
 	; --资源解析--
 	engines.insert(["Down", "C:\Program Files\Thunder Network\Thunder\Program\Thunder.exe " Clipboard]) ;迅雷下载
-	engines.insert(["Down:flvcd", "http://www.flvcd.com/parse.php?format=&kw=" Clipboard, "getvideo"]) ;硕鼠视频解析
-	engines.insert(["Down:Youtube", "D:\Solomon Xie\Workspace\Gists\youtubeDownload.py"]) ;Python下载Youtube视频
 	engines.insert(["Down:You1", "http://en.savefrom.net/#url=" Clipboard]) ;国外网站视频解析
 	engines.insert(["Down:You2", "http://savemedia.com/watch?v=" Clipboard, "getvideo"]) ;国外网站视频解析
+	; engines.insert(["Down:Youtube", "D:\Workspace\Gists\youtubeDownload.py"]) ;Python下载Youtube视频
+	engines.insert(["flvcd", "http://www.flvcd.com/parse.php?format=&kw=" Clipboard, "getvideo"]) ;硕鼠视频解析
 	; --在线课程--
 	engines.insert(["jikexy", "http://search.jikexueyuan.com/course/?q=" key, "cnCourse"]) ;极客学院搜索
 	engines.insert(["guoke", "http://mooc.guokr.com/search/?wd=" key, "cnCourse"]) ;果壳MOOC：各平台综合搜索
