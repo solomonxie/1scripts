@@ -1,5 +1,6 @@
 # Shadowrocket: 2017-12-08 21:39:47.427051
 # Shadowrocket config file by Hayden
+# Edited by Solomon
 
 [General]
 bypass-system = true
@@ -8,6 +9,7 @@ bypass-tun = 10.0.0.0/8,100.64.0.0/10,127.0.0.0/8,169.254.0.0/16,172.16.0.0/12,1
 dns-server =
 
 [Rule]
+DOMAIN-SUFFIX,jianshu.com,Proxy
 DOMAIN-SUFFIX,2dbook.com,Proxy
 DOMAIN-SUFFIX,4tern.com,Proxy
 DOMAIN-SUFFIX,85.17.73.31,Proxy
