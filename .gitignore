@@ -2,3 +2,4 @@ mailoutput
 fromweb
 .tmp
 *.pyc
+*.swp
