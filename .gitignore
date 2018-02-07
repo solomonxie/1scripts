@@ -3,3 +3,4 @@ fromweb
 .tmp
 *.pyc
 *.swp
+._*
