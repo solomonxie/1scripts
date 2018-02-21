@@ -8,11 +8,14 @@ Send screenshots to github and get the raw url,
 then paste in markdown file as a permanent image link.
 
 REQUIREMENT:
-    pip install pyobjc
+    pip install pyobjc        # FOR MAKING IT PYTHONIC WAY
+    or
+    brew install pngpaste     # FOR CALLING COMMAND LINE TOOL
 """
 
 import os
 import sys
+import time
 import json
 import base64
 import requests
@@ -29,7 +32,8 @@ def main():
 
     import pdb;pdb.set_trace()
 
-    path = get_pasteboard_img()
+    #path = get_pasteboard_img()
+    path = get_pasteboard_png()
     bs64 = img_to_bs64(path)
     url  = upload_to_github(path, bs64)
 
@@ -39,8 +43,10 @@ def main():
 
 
 def upload_to_github(path, fcontent):
-    token = raw_input('Please tell me your authentication token string:')
     filename = os.path.basename(path)
+
+    with open('/Volumes/SD/Workspace/etc/github-token.txt', 'r') as f:
+        token = f.read()
 
     # upload image data to github
     api = 'https://api.github.com/repos/solomonxie/user_content_media/contents/images/%s' % filename
@@ -75,6 +81,8 @@ def img_to_bs64(path):
 def get_pasteboard_img():
     """
     Get image from pasteboard/clipboard and save to file 
+    DEPRECATED: FOR THE REASON IT ONLY GENERATES TIFF IMAGE FROM CLIPBOARD
+    WHICH MAKES TO BE NEEDED ONE MORE FUNCTION TO CONVERT IMAGE TO PNG
     """
     pb = NSPasteboard.generalPasteboard()  # Get data object from clipboard 
     data_type = pb.types()                 # Get type of the data
@@ -83,10 +91,10 @@ def get_pasteboard_img():
     if NSPasteboardTypePNG in data_type:         # PNG:
         # Get data content by data type
         data = pb.dataForType_(NSPasteboardTypePNG)
-        filename = 'HELLO_PNG.png'
+        filename = '%d.png' % int(time.time() * 1000)
     elif NSPasteboardTypeTIFF in data_type:      # TIFF: most probablly it's tiff
         data = pb.dataForType_(NSPasteboardTypeTIFF)
-        filename = 'HELLO_TIFF.tiff'
+        filename = '%d.tiff' % int(time.time() * 1000)
     elif NSPasteboardTypeString in data_type:    # Text: if it's already a filepath then just return it
         data = str(pb.dataForType_(NSPasteboardTypeString))
         return data if os.path.exists(data) else None
@@ -94,29 +102,23 @@ def get_pasteboard_img():
         return None
 
     # Write data to a local file
-    filepath = '/Volumes/SD/Downloads/%s' % filename
+    filepath = '/tmp/%s' % filename
     success = data.writeToFile_atomically_(filepath, False)
 
     return filepath if success else None
 
-    ## Process with different types of data 
-    #if NSPasteboardTypePNG in data_type:          # PNG file
-    #    data = pb.dataForType_(NSPasteboardTypePNG)
-    #    filename = 'HELLO_PNG.png'
-    #    filepath = '/tmp/%s' % filename
-    #    ret = data.writeToFile_atomically_(filepath, False)
-    #    if ret: 
-    #        return filepath
-    #elif NSPasteboardTypeTIFF in data_type:         #TIFF: most probablly it's tiff
-    #    data = pb.dataForType_(NSPasteboardTypeTIFF)
-    #    filename = 'HELLO_TIFF.tiff'
-    #    filepath = '/tmp/%s' % filename
-    #    ret = data.writeToFile_atomically_(filepath, False)
-    #    if ret:
-    #        return filepath
-    #elif NSPasteboardTypeString in data_type:
-    #    # string todo, recognise url of png & jpg
-    #    pass
+
+
+def get_pasteboard_png():
+    """
+    Get png from pasteboard by commandline tool `pngpaste`, and save to file
+    """
+    filename = '%d.png' % int(time.time() * 1000)
+    filepath = '/tmp/%s' % filename
+
+    os.system('pngpaste %s' % filepath)
+
+    return filepath if os.path.exists(filepath) else None
 
 
 if __name__ == "__main__":
