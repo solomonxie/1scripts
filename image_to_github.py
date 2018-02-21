@@ -6,6 +6,7 @@ MAC ONLY.
 This if for convenience of writing markdown notes:
 Send screenshots to github and get the raw url, 
 then paste in markdown file as a permanent image link.
+BTW, it has minimum logging and error control.
 
 REQUIREMENT:
     pip install pyobjc        # FOR MAKING IT PYTHONIC WAY
@@ -26,16 +27,17 @@ from AppKit import NSPasteboard, NSPasteboardTypePNG, NSPasteboardTypeTIFF, NSPa
 
 def main():
     """
-
+    Main entry of this app
     """
     print 'Start...'
 
-    import pdb;pdb.set_trace()
+    #import pdb;pdb.set_trace()
 
-    #path = get_pasteboard_img()
-    path = get_pasteboard_png()
-    bs64 = img_to_bs64(path)
-    url  = upload_to_github(path, bs64)
+    #filepath = get_pasteboard_img()
+    #filepath = get_pasteboard_png()
+    filepath = get_pasteboard_img_or_filepath()
+    bs64 = img_to_bs64(filepath)
+    url  = upload_to_github(filepath, bs64)
 
     print 'Uploaded.\nNow copy image url[%s] to clipboard...' % url
 
@@ -43,16 +45,21 @@ def main():
 
 
 def upload_to_github(path, fcontent):
+    """
+    Upload local image file to github repo via Github API
+    """
     filename = os.path.basename(path)
 
+    # Read token string from a file outside repo
     with open('/Volumes/SD/Workspace/etc/github-token.txt', 'r') as f:
         token = f.read()
 
-    # upload image data to github
-    api = 'https://api.github.com/repos/solomonxie/user_content_media/contents/images/%s' % filename
+    # prepare request for Gihut API
+    api = 'https://api.github.com/repos/solomonxie/user_content_media/contents/markdown-images/%s' % filename
     headers = {'authorization': 'token %s' % token}
     payload = '{"message": "auto uploaded by python", "content": "%s"}' % fcontent
 
+    # upload image data to github
     print 'Uploading an image onto Github repository...'
     r = requests.request("PUT", url=api, data=payload, headers=headers, timeout=10)
 
@@ -63,7 +70,7 @@ def upload_to_github(path, fcontent):
         print 'Requesting of uploading failed...'
         return
 
-    # get the raw url of this file
+    # Get the file's raw url on Github
     info = r.json()
 
     return info['content']['download_url']
@@ -71,11 +78,38 @@ def upload_to_github(path, fcontent):
 
 
 def img_to_bs64(path):
+    """
+    Convert an image file to base64 string
+    Github API: to create a content, the file has to be encoded with base64
+    """
     with open(path, 'rb') as f:
         encoded = base64.b64encode(f.read())
 
     print 'Encoded an image into a base64 string. [%d]' % len(encoded)
     return encoded
+
+
+
+def get_pasteboard_img_or_filepath():
+    """
+    Mix `pngpaste` cli tool and `NSPasteboard` python mudule
+    for reading both img files or file path from pasteboard
+    """
+    pb = NSPasteboard.generalPasteboard()  # Get data object from clipboard 
+    data_type = pb.types()                 # Get type of the data
+
+    # Recognize data type for furher processing 
+    if NSPasteboardTypePNG in data_type or NSPasteboardTypeTIFF in data_type:
+        # Get data content by data type
+        filepath = '/tmp/%d.png' % int(time.time() * 1000)
+        os.system('pngpaste %s' % filepath)
+    elif NSPasteboardTypeString in data_type:    # Text: if it's already a filepath then just return it
+        filepath = str(pb.dataForType_(NSPasteboardTypeString))
+    else: 
+        return None
+
+    return filepath if os.path.exists(filepath) else None
+
 
 
 def get_pasteboard_img():
@@ -113,8 +147,7 @@ def get_pasteboard_png():
     """
     Get png from pasteboard by commandline tool `pngpaste`, and save to file
     """
-    filename = '%d.png' % int(time.time() * 1000)
-    filepath = '/tmp/%s' % filename
+    filepath = '/tmp/%d.png' % int(time.time() * 1000)
 
     os.system('pngpaste %s' % filepath)
 
