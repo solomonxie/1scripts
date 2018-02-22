@@ -58,7 +58,7 @@ def main():
     print 'Uploaded.\nNow copy image url[%s] to clipboard...' % url
 
     # Show notifications on mac (Applescript)
-    os.system('osascript -e "display notification \\"Now you can paste url link to makrdown: %s\\"' % markdown)
+    os.system('osascript -e "display notification \\"Now you can paste url link to makrdown: %s\\""' % markdown)
 
 
 
