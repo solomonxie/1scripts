@@ -36,12 +36,81 @@ def main():
     #filepath = get_pasteboard_img()
     #filepath = get_pasteboard_png()
     filepath = get_pasteboard_img_or_filepath()
-    bs64 = img_to_bs64(filepath)
-    url  = upload_to_github(filepath, bs64)
+
+    if os.path.exists(filepath) is False:
+        return
+
+    bs64 = img_to_bs64(filepath)              # convert img file to base64 string
+    url  = upload_to_github(filepath, bs64)   # call github api to upload img
 
     print 'Uploaded.\nNow copy image url[%s] to clipboard...' % url
 
+    # Store img url with markdown format
     os.system('echo "![Image](%s)" | pbcopy' % url)
+
+
+def get_pasteboard_img_or_filepath():
+    """
+    Mix `pngpaste` cli tool and `NSPasteboard` python mudule
+    for reading both img files or file path from pasteboard
+    """
+    pb = NSPasteboard.generalPasteboard()  # Get data object from clipboard 
+    data_type = pb.types()                 # Get type of the data
+
+    # Recognize data type for furher processing 
+    if NSPasteboardTypePNG in data_type or \
+            NSPasteboardTypeTIFF in data_type:      # Get data content by data type
+        filepath = '/tmp/%d.png' % int(time.time() * 1000)
+        os.system('pngpaste %s' % filepath)         # save img to local file
+    elif NSPasteboardTypeString in data_type:    
+        # Text: if it's already a filepath then just return it
+        filepath = str(pb.dataForType_(NSPasteboardTypeString))
+    else: 
+        return None
+
+    return filepath if os.path.exists(filepath) else None
+
+
+def get_pasteboard_img():
+    """
+    Get image from pasteboard/clipboard and save to file 
+    DEPRECATED: FOR THE REASON IT ONLY GENERATES TIFF IMAGE FROM CLIPBOARD
+    WHICH MAKES TO BE NEEDED ONE MORE FUNCTION TO CONVERT IMAGE TO PNG
+    """
+    pb = NSPasteboard.generalPasteboard()  # Get data object from clipboard 
+    data_type = pb.types()                 # Get type of the data
+
+    # Recognize data type for furher processing 
+    if NSPasteboardTypePNG in data_type:         # PNG:
+        # Get data content by data type
+        data = pb.dataForType_(NSPasteboardTypePNG)
+        filename = '%d.png' % int(time.time() * 1000)
+    elif NSPasteboardTypeTIFF in data_type:      # TIFF: most probablly it's tiff
+        data = pb.dataForType_(NSPasteboardTypeTIFF)
+        filename = '%d.tiff' % int(time.time() * 1000)
+    elif NSPasteboardTypeString in data_type:    # Text: if it's already a filepath then just return it
+        data = str(pb.dataForType_(NSPasteboardTypeString))
+        return data if os.path.exists(data) else None
+    else: 
+        return None
+
+    # Write data to a local file
+    filepath = '/tmp/%s' % filename
+    success = data.writeToFile_atomically_(filepath, False)
+
+    return filepath if success else None
+
+
+def get_pasteboard_png():
+    """
+    Get png from pasteboard by commandline tool `pngpaste`, and save to file
+    """
+    filepath = '/tmp/%d.png' % int(time.time() * 1000)
+
+    os.system('pngpaste %s' % filepath)
+
+    return filepath if os.path.exists(filepath) else None
+
 
 
 def upload_to_github(path, fcontent):
@@ -88,70 +157,6 @@ def img_to_bs64(path):
     print 'Encoded an image into a base64 string. [%d]' % len(encoded)
     return encoded
 
-
-
-def get_pasteboard_img_or_filepath():
-    """
-    Mix `pngpaste` cli tool and `NSPasteboard` python mudule
-    for reading both img files or file path from pasteboard
-    """
-    pb = NSPasteboard.generalPasteboard()  # Get data object from clipboard 
-    data_type = pb.types()                 # Get type of the data
-
-    # Recognize data type for furher processing 
-    if NSPasteboardTypePNG in data_type or NSPasteboardTypeTIFF in data_type:
-        # Get data content by data type
-        filepath = '/tmp/%d.png' % int(time.time() * 1000)
-        os.system('pngpaste %s' % filepath)
-    elif NSPasteboardTypeString in data_type:    # Text: if it's already a filepath then just return it
-        filepath = str(pb.dataForType_(NSPasteboardTypeString))
-    else: 
-        return None
-
-    return filepath if os.path.exists(filepath) else None
-
-
-
-def get_pasteboard_img():
-    """
-    Get image from pasteboard/clipboard and save to file 
-    DEPRECATED: FOR THE REASON IT ONLY GENERATES TIFF IMAGE FROM CLIPBOARD
-    WHICH MAKES TO BE NEEDED ONE MORE FUNCTION TO CONVERT IMAGE TO PNG
-    """
-    pb = NSPasteboard.generalPasteboard()  # Get data object from clipboard 
-    data_type = pb.types()                 # Get type of the data
-
-    # Recognize data type for furher processing 
-    if NSPasteboardTypePNG in data_type:         # PNG:
-        # Get data content by data type
-        data = pb.dataForType_(NSPasteboardTypePNG)
-        filename = '%d.png' % int(time.time() * 1000)
-    elif NSPasteboardTypeTIFF in data_type:      # TIFF: most probablly it's tiff
-        data = pb.dataForType_(NSPasteboardTypeTIFF)
-        filename = '%d.tiff' % int(time.time() * 1000)
-    elif NSPasteboardTypeString in data_type:    # Text: if it's already a filepath then just return it
-        data = str(pb.dataForType_(NSPasteboardTypeString))
-        return data if os.path.exists(data) else None
-    else: 
-        return None
-
-    # Write data to a local file
-    filepath = '/tmp/%s' % filename
-    success = data.writeToFile_atomically_(filepath, False)
-
-    return filepath if success else None
-
-
-
-def get_pasteboard_png():
-    """
-    Get png from pasteboard by commandline tool `pngpaste`, and save to file
-    """
-    filepath = '/tmp/%d.png' % int(time.time() * 1000)
-
-    os.system('pngpaste %s' % filepath)
-
-    return filepath if os.path.exists(filepath) else None
 
 
 if __name__ == "__main__":
