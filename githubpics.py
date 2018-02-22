@@ -33,9 +33,6 @@ def main():
     """
     print 'Start...'
 
-    get_file()
-    return
-
     #filepath = get_pasteboard_img()
     #filepath = get_pasteboard_png()
     filepath = get_pasteboard_img_or_filepath()
