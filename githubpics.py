@@ -67,7 +67,6 @@ def get_pasteboard_img_or_filepath():
     """
     pb = NSPasteboard.generalPasteboard()  # Get data object from clipboard 
     data_type = pb.types()                 # Get type of the data
-    import pdb;pdb.set_trace()
 
     # Recognize data type for furher processing 
     if NSPasteboardTypePNG in data_type or \
