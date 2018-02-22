@@ -10,10 +10,13 @@ BTW, it has minimum logging and error control.
 
 REQUIREMENT:
     pip install pyobjc        # FOR MAKING IT PYTHONIC WAY
-    or
     brew install pngpaste     # FOR CALLING COMMAND LINE TOOL
-    
     brew install osascript    # TERMINAL TOOL FOR RUNNING APPLESCRIPT
+
+CONFIGURATION:
+    Github repository address
+    Github Personal Access Token
+    
 """
 
 import os
@@ -51,7 +54,7 @@ def main():
         return
 
     # Store img url with markdown format
-    markdown = '![Image](%s)' % url
+    markdown = '![Title](%s)' % url
     os.system('echo "%s" | pbcopy' % markdown)
     print 'Uploaded.\nNow copy image url[%s] to clipboard...' % url
 
