@@ -174,7 +174,7 @@ def img_to_bs64(path):
 
 
 
-def test_more_possibility():
+def test_getClipboardFiles():
     import pdb;pdb.set_trace()
     import AppKit
     pb = NSPasteboard.generalPasteboard()
