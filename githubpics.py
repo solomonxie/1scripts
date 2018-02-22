@@ -23,7 +23,7 @@ import json
 import base64
 import requests
 
-# PyObjc library > Appkit > NSPasteboard (main class for clipboard) and PNG/TIFF file type classes
+# PyObjc library > Appkit > NSPasteboard (main class for clipboard) and file type classes
 from AppKit import NSPasteboard, NSPasteboardTypePNG, NSPasteboardTypeTIFF, NSPasteboardTypeString
 
 
@@ -33,7 +33,8 @@ def main():
     """
     print 'Start...'
 
-    #import pdb;pdb.set_trace()
+    get_file()
+    return
 
     #filepath = get_pasteboard_img()
     #filepath = get_pasteboard_png()
@@ -69,6 +70,7 @@ def get_pasteboard_img_or_filepath():
     """
     pb = NSPasteboard.generalPasteboard()  # Get data object from clipboard 
     data_type = pb.types()                 # Get type of the data
+    import pdb;pdb.set_trace()
 
     # Recognize data type for furher processing 
     if NSPasteboardTypePNG in data_type or \
@@ -171,6 +173,16 @@ def img_to_bs64(path):
     return encoded
 
 
+
+def test_more_possibility():
+    import pdb;pdb.set_trace()
+    import AppKit
+    pb = NSPasteboard.generalPasteboard()
+    if pb.availableTypeFromArray_( [AppKit.NSFilenamesPboardType] ):
+        files = pb.propertyListForType_( AppKit.NSFilenamesPboardType )
+        return [ unicode( filename ) for filename in files ]
+    else:
+        return []
 
 if __name__ == "__main__":
     main()
