@@ -37,16 +37,17 @@ def main():
     #filepath = get_pasteboard_png()
     filepath = get_pasteboard_img_or_filepath()
 
-    if os.path.exists(filepath) is False:
+    if not filepath or os.path.exists(filepath) is False:
+        print 'Process incomplete due to invalid pasteboard data.'
         return
 
     bs64 = img_to_bs64(filepath)              # convert img file to base64 string
     url  = upload_to_github(filepath, bs64)   # call github api to upload img
 
-    print 'Uploaded.\nNow copy image url[%s] to clipboard...' % url
-
-    # Store img url with markdown format
-    os.system('echo "![Image](%s)" | pbcopy' % url)
+    if url:
+        # Store img url with markdown format
+        os.system('echo "![Image](%s)" | pbcopy' % url)
+        print 'Uploaded.\nNow copy image url[%s] to clipboard...' % url
 
 
 def get_pasteboard_img_or_filepath():
