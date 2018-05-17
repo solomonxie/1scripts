@@ -23,12 +23,6 @@ def main():
 
     ## Walk through the folder
     for root, subdir, files in walk(base_folder, topdown=True):
-        #print(root, '\t', subdir, files)
-        #print('root: '+root)
-        #print('subdir: '+','.join(subdir))
-        #print('files: '+','.join(files))
-        #print('finished a loop.\n\n')
-
         if len(files) < 1: continue
 
         joint_name = path.basename(path.realpath(root)) + '.md'
@@ -47,8 +41,6 @@ def smart_reading(path):
     """
     Try different encodings
     """
-    #import pdb; pdb.set_trace()
-
     charsets = ['utf-8', 'gbk','UTF-16LE']
 
     for enc in charsets:
