@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """
@@ -134,8 +133,8 @@ def upload_to_github(path, fcontent):
     filename = os.path.basename(path)
 
     # Read token string from a file outside repo
-    with open('/Volumes/SD/Workspace/etc/github-token.txt', 'r') as f:
-        token = f.read()
+    with open('/Volumes/SD/Workspace/etc/github-token-for-gpcis', 'r') as f:
+        token = f.read().strip('\n\t\r')
 
     # prepare request for Gihut API
     api = 'https://api.github.com/repos/solomonxie/user_content_media/contents/markdown-images/%s' % filename
