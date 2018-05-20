@@ -103,7 +103,7 @@ class BlogSite:
             doc = '# %s @ %s \n\n %s' %(blog.title, blog.time, blog.content)
             with open(filename, 'w') as f:
                 f.write(doc)
-            break
+            #break
 
 
 class Article:
@@ -121,7 +121,7 @@ class Article:
         print(url)
 
         r = requests.get(url, headers=headers)
-        html = r.text
+        html = r.content
         time.sleep(1)
 
         if r.status_code is not 200:
@@ -140,11 +140,11 @@ class Article:
 
         tags = soup.select('div.articalTitle > span[class~=time]')
         self.time = tags[0].get_text() if len(tags) > 0 else ''
-        print(self.time, type(self.time))
+        #print(self.time, type(self.time))
 
-        tags = soup.select('div[class~=articalContent] > div')
-        self.content = tags[0].get_text() if len(tags) > 0 else ''
-        print(self.content, type(self.content))
+        tags = soup.select('div#sina_keyword_ad_area2')
+        self.content = tags[0].get_text().strip('\n\t\r') if len(tags) > 0 else 'N/A'
+        #print(self.content, type(self.content))
 
 
 
