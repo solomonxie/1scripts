@@ -136,7 +136,7 @@ class Article:
 
         tags = soup.select('div.articalTitle > h2')
         self.title = tags[0].get_text() if len(tags) > 0 else ''
-        print(self.title, type(self.title))
+        print(self.title)
 
         tags = soup.select('div.articalTitle > span[class~=time]')
         self.time = tags[0].get_text() if len(tags) > 0 else ''
