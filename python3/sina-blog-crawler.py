@@ -95,12 +95,10 @@ class BlogSite:
             self.fetch_article_list(self.article_list_url)
 
         # Start fetching each blog page
-        i = 0
         for url in self.article_urls:
-            i += 1
             # Download articles
             blog = Article(url)
-            filename = '%s/%d.MD' % (self.path, i)
+            filename = '%s/%d.MD' % (self.path, self.article_urls.index(url)+1)
             doc = '# %s \n@ %s \n[原文地址](%s) \n\n%s' %(blog.title, blog.time, blog.url, blog.content)
             with open(filename, 'w') as f:
                 f.write(doc)
