@@ -22,7 +22,7 @@ def diandian_blog_xml(src):
     with open(src, 'r') as f:
         html = f.read()
 
-    soup = BeautifulSoup(html, 'lxml')
+    soup = BeautifulSoup(html, 'html5lib')
     posts = soup.select('posts > post')
 
     print('%d posts have found.'%len(posts))
