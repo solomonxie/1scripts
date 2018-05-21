@@ -12,6 +12,7 @@ import requests
 import re
 import os
 import time
+from random import random
 from bs4 import BeautifulSoup
 
 headers = {
@@ -53,7 +54,7 @@ class BlogSite:
         """
         print(url)
 
-        r = requests.get(url, headers=headers)
+        r = requests.get(url, headers=headers, timeout=10)
         html = r.text
         time.sleep(1)
 
@@ -85,7 +86,7 @@ class BlogSite:
 
         # backup lists to local file
         with open(self.path+'/blog-lists.txt', 'w') as f:
-            f.writelines(self.article_urls)
+            f.write('\n'.join(self.article_urls))
 
 
     def download(self):
@@ -100,7 +101,7 @@ class BlogSite:
             # Download articles
             blog = Article(url)
             filename = '%s/%d.MD' % (self.path, i)
-            doc = '# %s @ %s \n\n %s' %(blog.title, blog.time, blog.content)
+            doc = '# %s \n@ %s \n[原文地址](%s) \n\n%s' %(blog.title, blog.time, blog.url, blog.content)
             with open(filename, 'w') as f:
                 f.write(doc)
             #break
@@ -120,9 +121,8 @@ class Article:
     def fetch_blog(self, url):
         print(url)
 
-        r = requests.get(url, headers=headers)
+        r = requests.get(url, headers=headers, timeout=10)
         html = r.content
-        time.sleep(1)
 
         if r.status_code is not 200:
             print('Server dinied. Status:[%s].'%r.status_code)
@@ -145,6 +145,9 @@ class Article:
         tags = soup.select('div#sina_keyword_ad_area2')
         self.content = tags[0].get_text().strip('\n\t\r') if len(tags) > 0 else 'N/A'
         #print(self.content, type(self.content))
+
+        # set random time gap before next run
+        time.sleep(round(10*random(), 2))
 
 
 
