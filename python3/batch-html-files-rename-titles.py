@@ -5,7 +5,7 @@ import os
 from bs4 import BeautifulSoup
 
 def main():
-    folder = '/Users/solomonxie/Movies/New/One-to-One-Conversations-backup/htm'
+    folder = '/Volumes/SD/Downloads/New/One-to-One-Conversations-backup/htm'
 
     #import pdb;pdb.set_trace()
     for root, subdir, files in os.walk(folder):
