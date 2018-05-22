@@ -10,8 +10,6 @@
 
 from os import path
 from os import walk
-import sys
-import time
 import re
 
 def main():
