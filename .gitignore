@@ -1,4 +1,6 @@
 .tmp
 *.pyc
 *.swp
+*.swo
 ._*
+.vscode

@@ -1,4 +1,5 @@
 # ---coding:utf-8---
+# python3
 
 # ==== This project should be running in a python3 enviroment, preferred in Virtualenv. ====
 #
@@ -14,8 +15,8 @@ import time
 from bs4 import BeautifulSoup
 
 def main():
-    diandian_blog_xml('/Volumes/SD/Downloads/Text-extract/diandian-1.xml')
-    diandian_blog_xml('/Volumes/SD/Downloads/Text-extract/diandian-2.xml')
+    #diandian_blog_xml('/Volumes/SD/Downloads/Text-extract/diandian-1.xml')
+    #diandian_blog_xml('/Volumes/SD/Downloads/Text-extract/diandian-2.xml')
 
 def diandian_blog_xml(src):
     folder = '/Volumes/SD/Downloads/blog-archives/diandian/'
@@ -44,7 +45,7 @@ def diandian_blog_xml(src):
 
         content = '# %s \n@ %s \n%s' %(title, ctime, text_filtered)
         print(title, ctime)
-        with open(folder+'%s.MD'%title, 'w') as f:
+        with open(folder+'%s.MD'%text_filtered[0:10], 'w') as f:
             f.write(content)
 
     return
