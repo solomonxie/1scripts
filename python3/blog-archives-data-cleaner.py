@@ -17,6 +17,7 @@ from bs4 import BeautifulSoup
 def main():
     #diandian_blog_xml('/Volumes/SD/Downloads/Text-extract/diandian-1.xml')
     #diandian_blog_xml('/Volumes/SD/Downloads/Text-extract/diandian-2.xml')
+    return
 
 def diandian_blog_xml(src):
     folder = '/Volumes/SD/Downloads/blog-archives/diandian/'

@@ -7,9 +7,10 @@ import os, re, time, zipfile
 
 def main():
     bdPan()
+    return
 
 def bdPan():
-    
+    return
 
 if __name__ == '__main__':
     main()
