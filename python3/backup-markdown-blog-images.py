@@ -15,15 +15,17 @@ import re
 
 def main():
     filename = './dataset/img_url_matching.md'
+    folder = '/Volumes/SD/Workspace/repos/user_content_media/issues-images/solomonxie.github.io/'
+    tmpfile = '/tmp/urls.txt'
     urls = match_img_urls(filename)
     print(urls)
 
     # export urls to a .txt file for downloading
-    with open('/tmp/urls.txt', 'w') as f:
+    with open(tmpfile, 'w') as f:
         f.write('\n'.join(urls))
 
     # Download all images from the url list
-    os.system('wget --random-wait -nc --limit-rate 300k -i /tmp/urls.txt -P dataset/imgs')
+    os.system('wget --random-wait -nc --limit-rate 300k -i %s -P %s'%(tmpfile, folder))
 
 
 def match_img_urls(filename=None):
@@ -32,6 +34,7 @@ def match_img_urls(filename=None):
     :returns: [] list. a list of url strings
     :matching: ![image](https://user-images.githubusercontent.com/14041622/40187586-70e7343c-5a2a-11e8-83ab-e36804921b73.png)
     :cmd: $ wget --random-wait -nc --limit-rate 300k -i List.txt ./folder/
+    :workflow: Could be replaced by "awk" command to perform a faster matching
     """
     if os.path.exists(filename) is False:
         return []
