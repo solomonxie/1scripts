@@ -3,7 +3,7 @@
 > Verses: Two are better than one, because they have a good return for their labor. Ecclesiastes 4:9
 
 ![thumbnail](https://d626yq9e83zk1.cloudfront.net/files/2018/06/06-770x425.jpg)
-## Devotion
+## Content
 In ancient times, a city with broken walls revealed a defeated people, exposed to danger and shame. That is why the Jews rebuilt the walls of Jerusalem. How? By working side by side, an expression that can well describe Nehemiah 3.
 At first glance, chapter 3 might appear to be a boring account of who did what in the reconstruction. However, a closer look highlights how people worked together. Priests were working alongside rulers. Perfume-makers were helping as well as goldsmiths. There were some who lived in nearby towns and came to give a hand. Others made repairs opposite their houses. Shallum’s daughters, for example, worked alongside the men (3:12), and some people repaired two sections, like the men of Tekoa (vv. 5, 27).
 Two things stand out from this chapter. First, they all worked together for a common goal. Second, all of them are commended for being part of the work, not for how much or little they did as compared to others.

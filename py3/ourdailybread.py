@@ -19,12 +19,14 @@ import requests
 from bs4 import BeautifulSoup
 
 def main():
-    md = './dataset/odb.org.html'
+    md = './dataset/odb.md'
     odb = OurDailyBread(md)
     #print(odb.markdown)
 
     with open(md, 'w') as f:
         f.write(odb.markdown)
+
+    odb.sendmail(['solomonxie@outlook.com'])
     
 
 class OurDailyBread:
@@ -56,7 +58,7 @@ class OurDailyBread:
         :path: Devotion page of odb.org
         :returns: Nothing. But composes markdown value of this instance.
         """
-        with open(path, 'r') as f:
+        with open('./dataset/odb.org.html', 'r') as f:
             soup = BeautifulSoup(f.read(), 'html5lib')
         #r = requests.get(url)
         #soup = BeautifulSoup(r.content)
@@ -89,8 +91,60 @@ class OurDailyBread:
         content = 'Read: [%s](%s) | Bible in a Year: [%s](%s)'\
                 %(links[0].get_text(), links[0]['href'], links[1].get_text(), links[1]['href'])
 
+        bible = BibleGateway(links[0]['href'])
+
         return content
 
+    
+    def sendmail(self, recipients):
+        """TODO: Docstring for sendmail.
+        :recipients: List, email recipients list
+        :returns: None.
+        """
+        pass
         
+
+class BibleGateway:
+
+    """Docstring for BibleGateway:. """
+
+    def __init__(self, url):
+        self.url = url 
+        self.quotes = []
+
+        self.fetch()
+
+    def fetch(self):
+        """TODO: Docstring for fetch.
+        :returns: TODO
+        """
+        with open('./dataset/biblegateway.html', 'r') as f:
+            soup = BeautifulSoup(f.read(), 'html5lib')
+
+        for tag in soup.select('div[class*=result-text-style-normal]'):
+            # Bolding all Chapter numbers
+            for c in tag.select('span[class=chapternum]'):
+                num = c.string
+                c.string = '**%s**' %(num)
+            # Change all Verse numbers to superscript
+            for v in tag.select('sub[class=versenum]'):
+                num = v.string
+                v.string = self.superscript(v.string)
+
+        print(chn)
+
+    def superscript(self, content):
+        """TODO: Change all verse numbers to Superscripts
+        :content: String.
+        :returns: String. A superscript number 
+        """
+        numbers = ['0','1','2','3','4','5','6','7','8','9'],
+        supers = ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹']
+
+        for n in numbers:
+            content = content.replace(n, supers[int(n)])
+
+
+
 if __name__ == "__main__":
     main()
