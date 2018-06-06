@@ -1,0 +1,13 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "*.swp": true,
+        "**/__pycache__": true
+    },
+    "python.venvPath": "/Users/solomonxie/.local/share/virtualenvs",
+    "python.pythonPath": "/Users/solomonxie/.local/share/virtualenvs/1scripts-yMQWFHBg"
+}

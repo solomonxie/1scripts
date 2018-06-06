@@ -19,7 +19,7 @@ import json
 import requests
 from bs4 import BeautifulSoup
 
-from email import Email
+from sendemail import Email
 from biblegateway import BibleGateway
 
 def main():
