@@ -9,9 +9,9 @@ Description:
     A simple script to scrap Our Daily Bread article of today,
     and would be used to send email to myself.
 Workflow:
-    - [ ] Scrap odb.org and download today's content
+    - [x] Scrap odb.org and download today's content
     - [ ] Scrap the bible verses cited in the content from Biblegateway.com
-    - [ ] Organize contents to form a Markdown file
+    - [x] Organize contents to form a Markdown file
     - [ ] Save file and store at a folder for `crontab`
 """
 
@@ -19,11 +19,11 @@ import requests
 from bs4 import BeautifulSoup
 
 def main():
-    path = './dataset/'
-    odb = OurDailyBread(path)
+    md = './dataset/odb.org.html'
+    odb = OurDailyBread(md)
     #print(odb.markdown)
 
-    with open(path+'odb.md', 'w') as f:
+    with open(md, 'w') as f:
         f.write(odb.markdown)
     
 
@@ -56,7 +56,7 @@ class OurDailyBread:
         :path: Devotion page of odb.org
         :returns: Nothing. But composes markdown value of this instance.
         """
-        with open('./dataset/odb.org.html', 'r') as f:
+        with open(path, 'r') as f:
             soup = BeautifulSoup(f.read(), 'html5lib')
         #r = requests.get(url)
         #soup = BeautifulSoup(r.content)
