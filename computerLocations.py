@@ -1,9 +1,10 @@
+# Python3
 # coding:utf-8
+
 '''
   # Title   : computerLocations
   # Author  : Solomon Xie
   # Utility : 
-  # Require : Python 2.x, Windows 7
   # Anlysis : 
   # Method  : 
   # Notes   : 
@@ -14,7 +15,7 @@ def main():
     parseInstruction()
 
 def parseInstruction(ins=""):
-    print sites(eg='fo:recent', key='hello')
+    print(sites(eg='fo:recent', key='hello'))
 
 def sites(eg="", key="", gp=""):
     engines = []
