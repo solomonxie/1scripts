@@ -15,18 +15,14 @@ Workflow:
     - [ ] Save file and store at a folder for `crontab`
 """
 
+import json
 import requests
 from bs4 import BeautifulSoup
 
 def main():
-    md = './dataset/odb.md'
-    odb = OurDailyBread(md)
-    #print(odb.markdown)
-
-    with open(md, 'w') as f:
-        f.write(odb.markdown)
-
-    odb.sendmail(['solomonxie@outlook.com'])
+    odb = OurDailyBread()
+    odb.save('./dataset/odb.md')
+    odb.sendmail('/Volumes/SD/Workspace/etc/email.json', ['solomonxie@outlook.com'])
     
 
 class OurDailyBread:
@@ -34,7 +30,7 @@ class OurDailyBread:
     A class for an article from today's odb.org content.  
     """
 
-    def __init__(self, path):
+    def __init__(self):
         """TODO: to be defined1. """
         self.url = 'https://odb.org'
         self.path = ''
@@ -50,18 +46,22 @@ class OurDailyBread:
         self.poem = ''
         self.thought = ''
         self.insight = ''
+        self.markdown = ''
+        self.html = ''
 
-        self.fetch(path)
+        self.fetch()
 
-    def fetch(self, path):
+    def fetch(self):
         """TODO: fetch contents from odb.org
-        :path: Devotion page of odb.org
         :returns: Nothing. But composes markdown value of this instance.
         """
+        print('Fetching Our daily bread...')
+        #r = requests.get(self.url)
+        #soup = BeautifulSoup(r.content, 'html5lib')
+        print('OK.')
+
         with open('./dataset/odb.org.html', 'r') as f:
             soup = BeautifulSoup(f.read(), 'html5lib')
-        #r = requests.get(url)
-        #soup = BeautifulSoup(r.content)
 
         # Parse contents
         self.title = soup.find('h2', attrs={'class': 'entry-title'}).get_text()
@@ -78,6 +78,11 @@ class OurDailyBread:
                 +'## Content\n%s\n%s\n%s\n## Scripture\n%s\n## INSIGHT\n> %s'
         self.markdown = body % (self.title, self.date,self.verses,self.thumbnail, \
             self.devotion, self.poem, self.thought, self.scripture, self.insight)
+        
+        # convert markdown to html format
+        #self.html = ''
+        with open('./dataset/out.html', 'r') as f:
+            self.html = f.read()
 
         
     def fetch_bible(self, tag):
@@ -91,18 +96,86 @@ class OurDailyBread:
         content = 'Read: [%s](%s) | Bible in a Year: [%s](%s)'\
                 %(links[0].get_text(), links[0]['href'], links[1].get_text(), links[1]['href'])
 
-        bible = BibleGateway(links[0]['href'])
+        #bible = BibleGateway(links[0]['href'])
 
         return content
 
+
+    def save(self, path):
+        """TODO: Docstring for save.
+        :returns: TODO
+        """
+        with open(path, 'w') as f:
+            f.write(self.markdown)
+        print('Saved markdown file.')
+
     
-    def sendmail(self, recipients):
+    def sendmail(self, path, recipients):
         """TODO: Docstring for sendmail.
+        :path: String, A local JSON file including mail server info 
         :recipients: List, email recipients list
         :returns: None.
         """
-        pass
+        # create email instance
+        mail = Email(path)
+        # make Email body
+        subject = self.title
+        content = self.html
+        # send mail
+        mail.send(subject, content, recipients)
+
+
+
+import smtplib
+from email.mime.text import MIMEText
+class Email:
+
+    """Docstring for Email. """
+
+    def __init__(self, path):
+        with open(path, 'r') as f:
+            self.cfg = json.loads(f.read())
+        self.server = self.cfg['senders'][1]
+
+    def send(self, subject, content, recipients):
+
+        """TODO: Docstring for send.
+        :subject: String, title for email
+        :content: String, HTML formated content
+        :recipients: List, email addresses.
+        :returns: None.
+        """
+        # Settings of sender's server
+        host = self.server['host']
+        sender = self.server['email']
+        user = self.server['user']
+        password = self.server['password']
+
+        # Login the sender's server
+        print('Logging with server...')
+        smtpObj = smtplib.SMTP() 
+        smtpObj.connect(host, 25)
+        smtpObj.login(user, password)
+        print('Login successful.')
+
+        # Content of email
+        #subject = 'Python send html email test55'
+        with open('./dataset/out.html', 'r') as f:
+            content = f.read()
         
+        # Settings of the email string
+        email = MIMEText(content,'html','utf-8')
+        email['Subject'] = subject
+        email['From'] = sender
+        email['To'] = recipients[0]
+        msg = email.as_string()
+        print('Sending email: [%s] from [%s] to [%s]'%(subject, self.sendfrom, recipients[0]))
+        
+        # Send email
+        smtpObj.sendmail(sender, recipients[0], msg) 
+        smtpObj.quit() 
+        print('OK.')
+
 
 class BibleGateway:
 
@@ -125,24 +198,27 @@ class BibleGateway:
             # Bolding all Chapter numbers
             for c in tag.select('span[class=chapternum]'):
                 num = c.string
-                c.string = '**%s**' %(num)
+                c.string = '**%s**' %(num.strip())
             # Change all Verse numbers to superscript
-            for v in tag.select('sub[class=versenum]'):
-                num = v.string
-                v.string = self.superscript(v.string)
+            for v in tag.find_all('sup', attrs={'class': 'versenum'}):
+                num = v.get_text()
+                v.string = self.superscript(num.strip())
 
-        print(chn)
+            print(tag.get_text())
+
 
     def superscript(self, content):
         """TODO: Change all verse numbers to Superscripts
         :content: String.
         :returns: String. A superscript number 
         """
-        numbers = ['0','1','2','3','4','5','6','7','8','9'],
+        numbers = ['0','1','2','3','4','5','6','7','8','9']
         supers = ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹']
 
         for n in numbers:
             content = content.replace(n, supers[int(n)])
+
+        return content
 
 
 
