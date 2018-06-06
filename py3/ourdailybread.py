@@ -52,9 +52,9 @@ class OurDailyBread:
         self.fetch(path)
 
     def fetch(self, path):
-        """TODO: Docstring for fetch.
-        :arg1: TODO
-        :returns: TODO
+        """TODO: fetch contents from odb.org
+        :path: Devotion page of odb.org
+        :returns: Nothing. But composes markdown value of this instance.
         """
         with open('./dataset/odb.org.html', 'r') as f:
             soup = BeautifulSoup(f.read(), 'html5lib')
@@ -92,7 +92,5 @@ class OurDailyBread:
         return content
 
         
-
-
 if __name__ == "__main__":
     main()
