@@ -150,6 +150,7 @@ class Email:
         sender = self.server['email']
         user = self.server['user']
         password = self.server['password']
+        to = recipient[0]
 
         # Login the sender's server
         print('Logging with server...')
@@ -167,12 +168,12 @@ class Email:
         email = MIMEText(content,'html','utf-8')
         email['Subject'] = subject
         email['From'] = sender
-        email['To'] = recipients[0]
+        email['To'] = to
         msg = email.as_string()
-        print('Sending email: [%s] from [%s] to [%s]'%(subject, self.sendfrom, recipients[0]))
+        print('Sending email: [%s] from [%s] to [%s]'%(subject, self.sendfrom, to))
         
         # Send email
-        smtpObj.sendmail(sender, recipients[0], msg) 
+        smtpObj.sendmail(sender, to, msg) 
         smtpObj.quit() 
         print('OK.')
 
