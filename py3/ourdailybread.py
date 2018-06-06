@@ -150,7 +150,7 @@ class Email:
         sender = self.server['email']
         user = self.server['user']
         password = self.server['password']
-        to = recipient[0]
+        to = recipients[0]
 
         # Login the sender's server
         print('Logging with server...')
@@ -170,7 +170,7 @@ class Email:
         email['From'] = sender
         email['To'] = to
         msg = email.as_string()
-        print('Sending email: [%s] from [%s] to [%s]'%(subject, self.sendfrom, to))
+        print('Sending email: [%s] from [%s] to [%s]'%(subject, sender, to))
         
         # Send email
         smtpObj.sendmail(sender, to, msg) 
