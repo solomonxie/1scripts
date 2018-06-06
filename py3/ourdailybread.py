@@ -19,6 +19,9 @@ import json
 import requests
 from bs4 import BeautifulSoup
 
+from email import Email
+from biblegateway import BibleGateway
+
 def main():
     odb = OurDailyBread()
     odb.save('./dataset/odb.md')
@@ -31,7 +34,6 @@ class OurDailyBread:
     """
 
     def __init__(self):
-        """TODO: to be defined1. """
         self.url = 'https://odb.org'
         self.path = ''
         self.title = ''
@@ -123,103 +125,6 @@ class OurDailyBread:
         content = self.html
         # send mail
         mail.send(subject, content, recipients)
-
-
-
-import smtplib
-from email.mime.text import MIMEText
-class Email:
-
-    """Docstring for Email. """
-
-    def __init__(self, path):
-        with open(path, 'r') as f:
-            self.cfg = json.loads(f.read())
-        self.server = self.cfg['senders'][1]
-
-    def send(self, subject, content, recipients):
-
-        """TODO: Docstring for send.
-        :subject: String, title for email
-        :content: String, HTML formated content
-        :recipients: List, email addresses.
-        :returns: None.
-        """
-        # Settings of sender's server
-        host = self.server['host']
-        sender = self.server['email']
-        user = self.server['user']
-        password = self.server['password']
-        to = recipients[0]
-
-        # Login the sender's server
-        print('Logging with server...')
-        smtpObj = smtplib.SMTP() 
-        smtpObj.connect(host, 25)
-        smtpObj.login(user, password)
-        print('Login successful.')
-
-        # Content of email
-        #subject = 'Python send html email test55'
-        with open('./dataset/out.html', 'r') as f:
-            content = f.read()
-        
-        # Settings of the email string
-        email = MIMEText(content,'html','utf-8')
-        email['Subject'] = subject
-        email['From'] = sender
-        email['To'] = to
-        msg = email.as_string()
-        print('Sending email: [%s] from [%s] to [%s]'%(subject, sender, to))
-        
-        # Send email
-        smtpObj.sendmail(sender, to, msg) 
-        smtpObj.quit() 
-        print('OK.')
-
-
-class BibleGateway:
-
-    """Docstring for BibleGateway:. """
-
-    def __init__(self, url):
-        self.url = url 
-        self.quotes = []
-
-        self.fetch()
-
-    def fetch(self):
-        """TODO: Docstring for fetch.
-        :returns: TODO
-        """
-        with open('./dataset/biblegateway.html', 'r') as f:
-            soup = BeautifulSoup(f.read(), 'html5lib')
-
-        for tag in soup.select('div[class*=result-text-style-normal]'):
-            # Bolding all Chapter numbers
-            for c in tag.select('span[class=chapternum]'):
-                num = c.string
-                c.string = '**%s**' %(num.strip())
-            # Change all Verse numbers to superscript
-            for v in tag.find_all('sup', attrs={'class': 'versenum'}):
-                num = v.get_text()
-                v.string = self.superscript(num.strip())
-
-            print(tag.get_text())
-
-
-    def superscript(self, content):
-        """TODO: Change all verse numbers to Superscripts
-        :content: String.
-        :returns: String. A superscript number 
-        """
-        numbers = ['0','1','2','3','4','5','6','7','8','9']
-        supers = ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹']
-
-        for n in numbers:
-            content = content.replace(n, supers[int(n)])
-
-        return content
 
 
 

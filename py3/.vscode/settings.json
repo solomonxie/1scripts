@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "/Volumes/SD/Workspace/venv3/bin/python"
+    "python.venvPath": "/Users/solomonxie/.local/share/virtualenvs/",
+    "python.pythonPath": "/Users/solomonxie/.local/share/virtualenvs/py3-WXfDlp0g/bin/python"
 }
