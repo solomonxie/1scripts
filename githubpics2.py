@@ -120,7 +120,7 @@ def upload_to_github(path, fcontent):
     filename = os.path.basename(path)
 
     # Read token string from a file outside repo
-    with open('/Volumes/SD/Workspace/etc/github-token.txt', 'r') as f:
+    with open('/Volumes/SD/Workspace/etc/tokens/github-token.txt', 'r') as f:
         token = f.read()
 
     # prepare request for Gihut API
