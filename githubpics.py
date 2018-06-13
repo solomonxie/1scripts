@@ -133,7 +133,7 @@ def upload_to_github(path, fcontent):
     filename = os.path.basename(path)
 
     # Read token string from a file outside repo
-    with open('/Volumes/SD/Workspace/etc/tokens/github-token-for-gpcis', 'r') as f:
+    with open('/Volumes/SD/Workspace/etc/configs/github-token-for-gpcis', 'r') as f:
         token = f.read().strip('\n\t\r')
 
     # prepare request for Gihut API
